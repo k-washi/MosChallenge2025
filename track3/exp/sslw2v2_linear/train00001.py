@@ -21,7 +21,7 @@ seed_everything(cfg.ml.seed)
 VERSION = "00001"
 EXP_ID = "sslw2v2_linear"
 WANDB_PROJECT_NAME = "moschallenge2025track3"
-IS_LOGGING = False
+IS_LOGGING = True
 FAST_DEV_RUN = False
 
 LOG_SAVE_DIR = f"logs/{EXP_ID}/v{VERSION}"
