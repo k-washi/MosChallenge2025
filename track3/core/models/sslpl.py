@@ -109,19 +109,29 @@ class MOSPredictorModule(LightningModule):
                 result_map[dataset_name]["pred"] = []
                 result_map[dataset_name]["true"] = []
                 result_map[dataset_name]["data"] = []
+
+            # normalizeをもとに戻す
+            pred_mos = (
+                pred_mos * (self.c.data.label_norm_max - self.c.data.label_norm_min)
+                + (self.c.data.label_min + self.c.data.label_max) / 2.0
+            )
+            true_mos = (
+                true_mos * (self.c.data.label_norm_max - self.c.data.label_norm_min)
+                + (self.c.data.label_min + self.c.data.label_max) / 2.0
+            )
             result_map[dataset_name]["pred"].append(pred_mos)
             result_map[dataset_name]["true"].append(true_mos)
             result_map[dataset_name]["data"].append((audio_name, pred_mos, true_mos))
         for dataset_name, result in result_map.items():
             pred_list = np.array(result["pred"])
             true_list = np.array(result["true"])
-            mse = np.mean((true_list - pred_list) ** 2)
+            l1 = np.mean(np.abs(true_list - pred_list))
             lcc = np.corrcoef(true_list, pred_list)[0][1]
             srcc = scipy.stats.spearmanr(true_list, pred_list)[0]
             ktau = scipy.stats.kendalltau(true_list, pred_list)[0]
             assert isinstance(srcc, float), f"srcc is not a float: {srcc}"
             assert isinstance(ktau, float), f"ktau is not a float: {ktau}"
-            self.log(f"val/{dataset_name}/mse", mse.item(), on_step=False, on_epoch=True, prog_bar=True, logger=True)
+            self.log(f"val/{dataset_name}/l1", l1.item(), on_step=False, on_epoch=True, prog_bar=True, logger=True)
             self.log(f"val/{dataset_name}/lcc", lcc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
             self.log(f"val/{dataset_name}/srcc", srcc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
             self.log(f"val/{dataset_name}/ktau", ktau, on_step=False, on_epoch=True, prog_bar=True, logger=True)

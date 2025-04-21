@@ -4,9 +4,12 @@ import math
 from pathlib import Path
 
 import torch
+import torchaudio
 
 from src.audio import load_wave
 from track3.core.config import Config
+
+SQUEEZE_DIM = 2
 
 
 class MOSDataset(torch.utils.data.Dataset):
@@ -69,14 +72,45 @@ class MOSDataset(torch.utils.data.Dataset):
         # normalize
         audio = audio / (torch.max(torch.abs(audio)).item() * self.c.data.normalize_scale)
 
+        if self.is_transform:
+            audio = self.aug(audio, sr)
+
         # 最大長さを調整
         audio_length = audio.shape[-1]
         audio_time_length = audio_length / sr
         if audio_time_length > self.c.data.max_duration:
             random_start = torch.randint(0, audio_length - math.ceil(self.c.data.max_duration * sr), (1,)).item()
             audio = audio[random_start : random_start + int(self.c.data.max_duration * sr)]
-
+        mos_score = (mos_score - (self.c.data.label_min + self.c.data.label_max) / 2.0) / (
+            self.c.data.label_norm_max - self.c.data.label_norm_min
+        )
         return audio, mos_score, user_id, str(audio_file)
+
+    def aug(self, x: torch.Tensor, sr: int) -> torch.Tensor:
+        """Apply augmentation to the audio data.
+
+        Args:
+        ----
+            x (torch.Tensor): Input audio tensor.
+            sr (int): Sample rate of the audio.
+
+        Returns:
+        -------
+            torch.Tensor: Augmented audio tensor.
+
+        """
+        if x.dim() == 1:
+            x = x.unsqueeze(0)
+        pitch_shift = int(torch.randint(-self.c.data.pitch_shift_max, self.c.data.pitch_shift_max + 1, (1,)).item())
+        time_wrap = float(torch.empty(1).uniform_(self.c.data.time_wrap_min, self.c.data.time_wrap_max).item())
+        effects = [
+            ["tempo", str(time_wrap)],
+            ["pitch", str(pitch_shift)],
+        ]
+        x, _ = torchaudio.sox_effects.apply_effects_tensor(x, sr, effects)
+        if x.dim() == SQUEEZE_DIM:
+            x = x.squeeze(0)
+        return x
 
     @staticmethod
     def collate_fn(batch: list) -> tuple:
@@ -97,7 +131,7 @@ class MOSDataset(torch.utils.data.Dataset):
 
         wave_tensor = torch.zeros((len(wavs), max_len))
         attention_mask = torch.zeros((len(wavs), max_len))
-        score_tensor = torch.tensor(scores, dtype=torch.long)
+        score_tensor = torch.tensor(scores, dtype=torch.float32)
         user_tensor = torch.tensor(user_ids, dtype=torch.long)
         for i, wav in enumerate(wavs):
             wave_tensor[i, : wav.shape[-1]] = wav

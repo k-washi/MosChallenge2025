@@ -149,3 +149,4 @@ setup/cusparselt*
 cusparselt*
 lightning_logs/
 wandb/
+moschallenge2025track3/

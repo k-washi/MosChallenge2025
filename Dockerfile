@@ -14,7 +14,7 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
     sudo wget curl git zip unzip gcc make cmake clang openssl openssh-client \
     libssl-dev libbz2-dev libreadline-dev \
     libsqlite3-dev python3-tk tk-dev \
-    libfreetype6-dev libffi-dev liblzma-dev libsndfile1 ffmpeg zstd sox
+    libfreetype6-dev libffi-dev liblzma-dev libsndfile1 ffmpeg zstd sox libsox-dev libsox-fmt-all
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 RUN unzip awscliv2.zip

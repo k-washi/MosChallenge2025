@@ -61,3 +61,44 @@ def get_dataset_fp_label_userid(
         assert audio_fp.exists(), f"Audio file {audio_fp} does not exist."
 
     return audio_list, label_list, user_id_list
+
+
+def get_datset_fp_label_mean(
+    dataset_list: list[str],
+) -> tuple[list[str | Path], list[int]]:
+    """Get the file paths and mean labels from the dataset.
+
+    Args:
+    ----
+        dataset_list (list[str]): List of dataset csv file.
+
+    Returns:
+    -------
+        tuple: A tuple containing lists of audio file paths and mean labels.
+
+    """
+    audio_list = []
+    label_list = []
+
+    for csv_fp in dataset_list:
+        audio_score_map = {}
+        data_df = pd.read_csv(csv_fp)
+        wav_dir = Path(csv_fp).parent / "wav"
+        tmp_audio_list = data_df["wav"].tolist()
+        tmp_label_list = data_df["score"].tolist()
+        for audio_name, score in zip(tmp_audio_list, tmp_label_list, strict=False):
+            if audio_name not in audio_score_map:
+                audio_score_map[audio_name] = []
+            audio_score_map[audio_name].append(score)
+        tmp_audio_list, tmp_label_list = [], []
+        for audio_name, score_list in audio_score_map.items():
+            tmp_audio_list.append(audio_name)
+            tmp_label_list.append(sum(score_list) / len(score_list))
+        tmp_audio_list = [wav_dir / Path(audio) for audio in tmp_audio_list]
+        audio_list.extend(tmp_audio_list)
+        label_list.extend(tmp_label_list)
+    assert len(audio_list) == len(label_list), "Length of audio_list and label_list must be the same."
+    for audio_fp in audio_list:
+        assert audio_fp.exists(), f"Audio file {audio_fp} does not exist."
+
+    return audio_list, label_list

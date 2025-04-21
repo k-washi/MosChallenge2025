@@ -6,6 +6,8 @@ from torch.utils.data import DataLoader
 from track3.core.config import Config
 from track3.core.dataset.mosdataset import MOSDataset
 
+EMPTY_LIST = []
+
 
 class MOSDataModule(LightningDataModule):
     """Data module for the MOS dataset.
@@ -25,26 +27,26 @@ class MOSDataModule(LightningDataModule):
         config: Config,
         train_audio_list: list[str | Path],
         train_label_list: list[int],
-        train_user_id_list: list[int],
         val_audio_list: list[str | Path],
         val_label_list: list[int],
-        val_user_id_list: list[int],
         test_audio_list: list[str | Path],
         test_label_list: list[int],
-        test_user_id_list: list[int],
+        train_user_id_list: list[int] = EMPTY_LIST,
+        val_user_id_list: list[int] = EMPTY_LIST,
+        test_user_id_list: list[int] = EMPTY_LIST,
     ) -> None:
         """Initialize the MOSDataModule."""
         super().__init__()
         self.c = config
         self.train_audio_list = train_audio_list
         self.train_label_list = train_label_list
-        self.train_user_id_list = train_user_id_list
         self.val_audio_list = val_audio_list
         self.val_label_list = val_label_list
-        self.val_user_id_list = val_user_id_list
         self.test_audio_list = test_audio_list
         self.test_label_list = test_label_list
-        self.test_user_id_list = test_user_id_list
+        self.train_user_id_list = train_user_id_list if len(train_user_id_list) > 0 else [0] * len(train_audio_list)
+        self.val_user_id_list = val_user_id_list if len(val_user_id_list) > 0 else [0] * len(val_audio_list)
+        self.test_user_id_list = test_user_id_list if len(test_user_id_list) > 0 else [0] * len(test_audio_list)
 
     def setup(self, stage: str | None = None) -> None:
         """Set the dataset for training, validation, and testing.

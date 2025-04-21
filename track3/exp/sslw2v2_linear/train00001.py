@@ -10,7 +10,7 @@ from lightning.pytorch.loggers import WandbLogger
 from track3.core.config import Config
 from track3.core.dataset.mospl import MOSDataModule
 from track3.core.models.sslpl import MOSPredictorModule
-from track3.exp.utils import CheckpointEveryEpoch, get_dataset_fp_label_userid, get_user_map
+from track3.exp.utils import CheckpointEveryEpoch, get_datset_fp_label_mean
 
 cfg = Config()
 seed_everything(cfg.ml.seed)
@@ -48,32 +48,29 @@ TEST_LIST = [
     "data/mos/track3/utt_48k.csv",
 ]
 
-user_map = get_user_map(user_csv_fp)
-print(f"user_len: {len(user_map)}")
-train_audio_list, train_label_list, train_user_id_list = get_dataset_fp_label_userid(
+
+train_audio_list, train_label_list = get_datset_fp_label_mean(
     dataset_list=TRAIN_LIST,
-    user_map=user_map,
 )
 print(f"train_len: {len(train_audio_list)}")
-val_audio_list, val_label_list, val_user_id_list = get_dataset_fp_label_userid(
+val_audio_list, val_label_list = get_datset_fp_label_mean(
     dataset_list=VAL_LIST,
-    user_map=user_map,
 )
 print(f"val_len: {len(val_audio_list)}")
-test_audio_list, test_label_list, test_user_id_list = get_dataset_fp_label_userid(
+test_audio_list, test_label_list = get_datset_fp_label_mean(
     dataset_list=TEST_LIST,
-    user_map=user_map,
 )
+
 print(f"test_len: {len(test_audio_list)}")
 ##########
 cfg.ml.num_epochs = 10
 cfg.ml.batch_size = 16
 cfg.ml.test_batch_size = 16
-cfg.ml.num_workers = 2
+cfg.ml.num_workers = 4
 cfg.ml.accumulate_grad_num = 1
 cfg.ml.grad_clip_val = 1
 cfg.ml.check_val_every_n_epoch = 1
-cfg.ml.mix_precision = "bf16"
+cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
 cfg.ml.optimizer.lr = 2e-5
@@ -92,6 +89,11 @@ cfg.model.w2v2.pretrained_model_name = "facebook/wav2vec2-base-960h"
 cfg.model.w2v2.dropout = 0.1
 cfg.model.w2v2.is_freeze_ssl = False
 
+# dataset
+cfg.data.pitch_shift_max = 2
+cfg.data.time_wrap_max = 1.1
+cfg.data.time_wrap_min = 0.9
+
 
 def train() -> None:
     """Train the model."""
@@ -99,13 +101,10 @@ def train() -> None:
         config=cfg,
         train_audio_list=train_audio_list,
         train_label_list=train_label_list,
-        train_user_id_list=train_user_id_list,
         val_audio_list=val_audio_list,
         val_label_list=val_label_list,
-        val_user_id_list=val_user_id_list,
         test_audio_list=test_audio_list,
         test_label_list=test_label_list,
-        test_user_id_list=test_user_id_list,
     )
     cfg.data.train_dataset_num = len(train_audio_list)
     model = MOSPredictorModule(cfg)
