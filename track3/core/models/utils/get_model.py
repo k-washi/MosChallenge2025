@@ -24,7 +24,15 @@ def get_model(config: ModelConfig, model_name: str) -> torch.nn.Module:
         from track3.core.models.ssl.wav2vec2_linear import MOSPredictorW2V2
 
         model = MOSPredictorW2V2(
-            ssl_out_dim=config.w2v2.ssl_out_dim,
+            dropout=config.w2v2.dropout,
+            pretrained_model_name=config.w2v2.pretrained_model_name,
+        )
+        if config.w2v2.is_freeze_ssl:
+            model.freaze_ssl()
+    elif model_name == "wav2vec2_bilstmattn":
+        from track3.core.models.ssl.wav2vec2_bilstmattn import MOSPredictorW2V2
+
+        model = MOSPredictorW2V2(
             dropout=config.w2v2.dropout,
             pretrained_model_name=config.w2v2.pretrained_model_name,
         )

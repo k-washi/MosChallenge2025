@@ -1,6 +1,4 @@
-MODEL_LIST = [
-    "wav2vec2_linear",
-]
+MODEL_LIST = ["wav2vec2_linear", "wav2vec2_bilstmattn"]
 
 
 class Wav2Vec2Config:

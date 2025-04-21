@@ -76,4 +76,6 @@ python ./track3/dataset/utils/user_gather.py --dataset_dir ./data/mos/
 cd ./data
 wget https://www.openslr.org/resources/141/train_clean_360.tar.gz
 tar -zxvf train_clean_360.tar.gz
+
+wget https://www.openslr.org/resources/60/train-clean-360.tar.gz
 ```

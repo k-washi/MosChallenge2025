@@ -6,14 +6,12 @@ from transformers import Wav2Vec2Model  # pyright: ignore[reportPrivateImportUsa
 class MOSPredictorW2V2(nn.Module):
     """A PyTorch model for predicting Mean Opinion Score (MOS) using Wav2Vec2."""
 
-    def __init__(
-        self, ssl_out_dim: int = 768, dropout: float = 0.1, pretrained_model_name: str = "facebook/wav2vec2-base-960h"
-    ) -> None:
+    def __init__(self, dropout: float = 0.1, pretrained_model_name: str = "facebook/wav2vec2-base-960h") -> None:
         """Initialize the MOSPredictorW2V model."""
         super().__init__()
 
         self.ssl_model = Wav2Vec2Model.from_pretrained(pretrained_model_name)
-        self.ssl_out_dim = ssl_out_dim
+        self.ssl_out_dim = self.ssl_model.config.hidden_size
         self.dense = nn.Linear(in_features=self.ssl_out_dim, out_features=self.ssl_out_dim)
         self.dropout = nn.Dropout(dropout)
         self.acticvation = nn.Tanh()

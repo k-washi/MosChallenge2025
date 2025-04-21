@@ -51,6 +51,18 @@ class MOSPredictorW2V2(nn.Module):
         else:
             ssl_out = self.ssl_model(x, attention_mask=attention_mask).last_hidden_state  # (batch_size, seq_len, ssl_out_dim)
 
+        if attention_mask is not None:
+            # Apply attention mask to the output
+            output_seq_len = ssl_out.size(1)
+            attention_mask = (
+                torch.nn.functional.interpolate(
+                    attention_mask.unsqueeze(1).float(),
+                    size=output_seq_len,
+                    mode="nearest",
+                )
+                .squeeze(1)
+                .to(torch.bool)
+            )
         return self.head(ssl_out, attention_mask=attention_mask)  # (batch_size, 1)
 
     def freaze_ssl(self) -> None:
