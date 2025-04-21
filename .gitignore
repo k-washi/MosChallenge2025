@@ -147,3 +147,4 @@ tmp/
 nohup/
 setup/cusparselt*
 cusparselt*
+lightning_logs/
