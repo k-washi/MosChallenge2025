@@ -1,0 +1,5 @@
+
+class MLConfig:
+    batch_size: int = 32
+    test_batch_size: int = 32
+    num_workers: int = 4
