@@ -13,9 +13,13 @@ class OptimizerConfig:
 class MLConfig:
     """ML config class."""
 
+    seed: int = 3407
     batch_size: int = 32
     test_batch_size: int = 32
     num_workers: int = 4
+    grad_clip_val: float = 500
+    check_val_every_n_epoch: int = 1
+    mix_precision: str = "32"
 
     num_epochs: int = 10
     accumulate_grad_num: int = 1

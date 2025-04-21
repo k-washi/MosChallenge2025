@@ -20,12 +20,13 @@ class MOSPredictorW2V2(nn.Module):
 
         self.output_layer = nn.Linear(in_features=self.ssl_out_dim, out_features=1)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, attention_mask: torch.Tensor | None = None) -> torch.Tensor:
         """Forward pass of the model.
 
         Args:
         ----
             x (torch.Tensor): Input tensor of shape (batch_size, seq_len).
+            attention_mask (torch.Tensor, optional): Attention mask tensor of shape (batch_size, seq_len). Defaults to None.
 
         Returns:
         -------
@@ -33,11 +34,13 @@ class MOSPredictorW2V2(nn.Module):
 
         """
         # Extract features using Wav2Vec2 # ssl_out_dim = 768 (wav2vec2-base-960h)
-        ssl_out = self.ssl_model(x).last_hidden_state  # (batch_size, seq_len, ssl_out_dim)
+        if attention_mask is None:
+            ssl_out = self.ssl_model(x).last_hidden_state  # (batch_size, seq_len, ssl_out_dim)
+        else:
+            ssl_out = self.ssl_model(x, attention_mask=attention_mask).last_hidden_state  # (batch_size, seq_len, ssl_out_dim)
         # Take the mean of the features across the time dimension
         ssl_out = ssl_out.mean(dim=1)  # (batch_size, ssl_out_dim)
         # Pass through the output layer
-
         ssl_out = self.dense(ssl_out)  # (batch_size, ssl_out_dim)
         ssl_out = self.dropout(ssl_out)
         ssl_out = self.acticvation(ssl_out)

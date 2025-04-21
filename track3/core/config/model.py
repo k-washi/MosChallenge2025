@@ -9,7 +9,7 @@ class Wav2Vec2Config:
     ssl_out_dim: int = 768
     dropout: float = 0.1
     pretrained_model_name: str = "facebook/wav2vec2-base-960h"
-    is_freaze_ssl: bool = False
+    is_freeze_ssl: bool = False
 
 
 class ModelConfig:

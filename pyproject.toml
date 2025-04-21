@@ -24,6 +24,7 @@ dev-dependencies = [
     "pyright>=1.1.389",
     "pytest>=8.3.3",
     "ruff>=0.6.9",
+    "wandb>=0.19.9",
 ]
 
 [tool.uv.sources]

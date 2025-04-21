@@ -28,7 +28,7 @@ def get_model(config: ModelConfig, model_name: str) -> torch.nn.Module:
             dropout=config.w2v2.dropout,
             pretrained_model_name=config.w2v2.pretrained_model_name,
         )
-        if config.w2v2.is_freaze_ssl:
+        if config.w2v2.is_freeze_ssl:
             model.freaze_ssl()
     else:
         emsg = f"Model {model_name} not found."

@@ -1,5 +1,6 @@
 # audio file, mos, user_idを返す
 
+import math
 from pathlib import Path
 
 import torch
@@ -72,8 +73,8 @@ class MOSDataset(torch.utils.data.Dataset):
         audio_length = audio.shape[-1]
         audio_time_length = audio_length / sr
         if audio_time_length > self.c.data.max_duration:
-            random_start = torch.randint(0, audio_length - int(self.c.data.max_duration * sr), (1,)).item()
-            audio = audio[:, random_start : random_start + int(self.c.data.max_duration * sr)]
+            random_start = torch.randint(0, audio_length - math.ceil(self.c.data.max_duration * sr), (1,)).item()
+            audio = audio[random_start : random_start + int(self.c.data.max_duration * sr)]
 
         return audio, mos_score, user_id, str(audio_file)
 
@@ -95,11 +96,13 @@ class MOSDataset(torch.utils.data.Dataset):
         max_len = max([wav.shape[-1] for wav in wavs])
 
         wave_tensor = torch.zeros((len(wavs), max_len))
+        attention_mask = torch.zeros((len(wavs), max_len))
         score_tensor = torch.tensor(scores, dtype=torch.long)
         user_tensor = torch.tensor(user_ids, dtype=torch.long)
         for i, wav in enumerate(wavs):
             wave_tensor[i, : wav.shape[-1]] = wav
-        return wave_tensor, score_tensor, user_tensor, audio_files
+            attention_mask[i, : wav.shape[-1]] = 1
+        return wave_tensor, attention_mask, score_tensor, user_tensor, audio_files
 
 
 if __name__ == "__main__":

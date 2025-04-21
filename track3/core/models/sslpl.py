@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 import torch
-from pytorch_lightning import LightningModule
+from lightning.pytorch import LightningModule
 from transformers import get_cosine_schedule_with_warmup  # pyright: ignore[reportPrivateImportUsage]
 
 from track3.core.config import Config
@@ -37,9 +37,9 @@ class MOSPredictorModule(LightningModule):
         self.model = get_model(config=config.model, model_name=config.model.model_name)
         self.loss = get_loss(config=config.loss, loss_name=config.loss.loss_name)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, attention_mask: torch.Tensor | None = None) -> torch.Tensor:
         """Forward pass through the model."""
-        pred = self.model(x)
+        pred = self.model(x, attention_mask=attention_mask)
         if pred.dim() == OUTPUT_SQ_DIM:
             pred = pred.squeeze(1)
         return pred
@@ -58,8 +58,8 @@ class MOSPredictorModule(LightningModule):
 
         """
         _ = batch_idx
-        wavs, mos_score, _, _ = batch
-        pred = self(wavs)
+        wavs, attention_mask, mos_score, _, _ = batch
+        pred = self(wavs, attention_mask=attention_mask)
 
         loss = self.loss(pred, mos_score)
         self.log("train/loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
@@ -84,14 +84,14 @@ class MOSPredictorModule(LightningModule):
 
         """
         _ = batch_idx
-        wavs, mos_score, _, wav_fp_lsit = batch
-        pred = self(wavs)
+        wavs, attention_mask, mos_score, _, wav_fp_list = batch
+        pred = self(wavs, attention_mask=attention_mask)
         loss = self.loss(pred, mos_score)
-        self.log("val/loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, batch_size=self.c.ml.test_batch_size)
 
         pred = pred.detach().cpu()
         mos_score = mos_score.detach().cpu()
-        for wav_fp, pred_mos, true_mos in zip(wav_fp_lsit, pred, mos_score, strict=False):
+        for wav_fp, pred_mos, true_mos in zip(wav_fp_list, pred, mos_score, strict=False):
             self.dataset_mos_list.append((wav_fp, pred_mos.item(), true_mos.item()))
 
         return loss
