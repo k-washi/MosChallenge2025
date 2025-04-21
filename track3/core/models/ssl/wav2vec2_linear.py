@@ -3,7 +3,7 @@ from torch import nn
 from transformers import Wav2Vec2Model  # pyright: ignore[reportPrivateImportUsage]
 
 
-class MOSPredictorW2V(nn.Module):
+class MOSPredictorW2V2(nn.Module):
     """A PyTorch model for predicting Mean Opinion Score (MOS) using Wav2Vec2."""
 
     def __init__(
@@ -53,6 +53,6 @@ class MOSPredictorW2V(nn.Module):
 
 if __name__ == "__main__":
     # Example usage
-    model = MOSPredictorW2V()
+    model = MOSPredictorW2V2()
     x = torch.randn(2, 320 * 6 + 159)  # Batch of 32 audio samples, each 1 second long
     output = model(x)
