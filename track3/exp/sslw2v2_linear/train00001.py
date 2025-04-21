@@ -71,14 +71,14 @@ cfg.ml.batch_size = 16
 cfg.ml.test_batch_size = 16
 cfg.ml.num_workers = 2
 cfg.ml.accumulate_grad_num = 1
-cfg.ml.grad_clip_val = 500
+cfg.ml.grad_clip_val = 1
 cfg.ml.check_val_every_n_epoch = 1
 cfg.ml.mix_precision = "bf16"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
-cfg.ml.optimizer.lr = 1e-4
-cfg.ml.optimizer.weight_decay = 1e-4
-cfg.ml.optimizer.adam_epsilon = 1e-4
+cfg.ml.optimizer.lr = 2e-5
+cfg.ml.optimizer.weight_decay = 0.005
+cfg.ml.optimizer.adam_epsilon = 1e-5
 cfg.ml.optimizer.warmup_epoch = 1
 cfg.ml.optimizer.num_cycles = 0.5
 
@@ -118,7 +118,7 @@ def train() -> None:
     ckpt_callback = CheckpointEveryEpoch(save_dir=cfg.path.model_save_dir, every_n_epochs=cfg.ml.check_val_every_n_epoch)
     callback_list = [
         ckpt_callback,
-        LearningRateMonitor(logging_interval="epoch"),
+        LearningRateMonitor(logging_interval="step"),
     ]
     ################################
     # 訓練

@@ -172,5 +172,22 @@ class MOSPredictorModule(LightningModule):
             num_training_steps=total_train_steps,
             num_cycles=self.c.ml.optimizer.num_cycles,
         )
+        lr_scheduler_config = {
+            "scheduler": scheduler,
+            "interval": "step",
+            "frequency": 1,
+            "strict": True,
+        }
+        return [optimizer], [lr_scheduler_config]
 
-        return [optimizer], [scheduler]
+    def lr_scheduler_step(self, scheduler: Any, metric: Any) -> None:
+        """Step the learning rate scheduler.
+
+        Args:
+        ----
+            scheduler (torch.optim.lr_scheduler._LRScheduler): Learning rate scheduler.
+            metric (str): Metric to monitor.
+
+        """
+        _ = metric
+        scheduler.step()
