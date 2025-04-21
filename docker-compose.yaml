@@ -15,10 +15,10 @@ services:
       - $PWD:/home/mluser/mlexpenv
     command: '/bin/bash'
     network_mode: host
-    #runtime: nvidia
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            capabilities: [gpu]
+    runtime: nvidia
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #      - driver: nvidia
+    #        capabilities: [gpu]
