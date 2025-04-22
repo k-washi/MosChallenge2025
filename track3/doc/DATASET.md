@@ -76,6 +76,9 @@ python ./track3/dataset/utils/user_gather.py --dataset_dir ./data/mos/
 cd ./data
 wget https://www.openslr.org/resources/141/train_clean_360.tar.gz
 tar -zxvf train_clean_360.tar.gz
+python track3/dataset/librittsr/formatter.py --input_dir ./data/LibriTTS/train-clean-360/ --output_dir ./data/libritts/wav
 
 wget https://www.openslr.org/resources/60/train-clean-360.tar.gz
+tar -zxvf train-clean-360.tar.gz
+python track3/dataset/librittsr/formatter.py --input_dir ./data/LibriTTS/train-clean-360/ --output_dir ./data/libritts/wav
 ```

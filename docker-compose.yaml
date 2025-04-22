@@ -13,6 +13,7 @@ services:
     tty: true
     volumes:
       - $PWD:/home/mluser/mlexpenv
+      - /data/mos:/data
     command: '/bin/bash'
     network_mode: host
     runtime: nvidia
