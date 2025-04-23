@@ -14,14 +14,18 @@ dependencies = [
     "numpy==1.26.4",
     "pandas>=2.2.3",
     "scipy>=1.15.2",
+    "timm>=1.0.15",
     "torch>=2.6.0",
     "torchaudio>=2.6.0",
+    "torchvision>=0.21.0",
     "transformers>=4.51.3",
 ]
 
 
 [tool.uv]
 dev-dependencies = [
+    "descript-audiotools",
+    "nemo-toolkit[tts]>=2.0.0",
     "pre-commit>=4.0.0",
     "pyright>=1.1.389",
     "pytest>=8.3.3",
@@ -32,6 +36,8 @@ dev-dependencies = [
 [tool.uv.sources]
 torch = [{ index = "pytorch-cu126", marker = "platform_system != 'Darwin'" }]
 torchaudio = [{ index = "pytorch-cu126", marker = "platform_system != 'Darwin'" }]
+torchvision = [{ index = "pytorch-cu126", marker = "platform_system != 'Darwin'" }]
+descript-audiotools = { git = "https://github.com/descriptinc/audiotools" }
 
 [[tool.uv.index]]
 name = "pytorch-cu126"
