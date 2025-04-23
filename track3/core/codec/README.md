@@ -11,12 +11,13 @@ Audio Codecを用いて、劣化音声を作成する
 /datsetname/299
 /datasetname/199
 
-298 > 297 > 296 > 295 > ... の順で劣化(この列は、299に対するrestorationの結果)
-288, 278, 276, ...は、それぞれ1桁の数字と同じレベルのrestoration + ノイズを付加したもの
+x88はnum_streams = 6で劣化
+x87はnum_streams = 2で劣化
+x86はnum_streams = 1で劣化
 
-x88は, codecの一部を除去 or 空白が1サンプルから~2割
-x78は, codecの一部にランダムなノイズ
-x68は, codecの一部にランダムなノイズ + (codecの一部を除去 or 空白が1サンプルから~2割)
+x78は、nvidia/low-frame-rate-speech-codec-22khzで劣化
+x77は、nvidia/low-frame-rate-speech-codec-22khzで劣化 + codecをmax 9/10でclamp
+x76は、nvidia/low-frame-rate-speech-codec-22khzで劣化 + codecをmax 7/10でclamp 
 
 ここで、x88とx78, x88とx87は比較できない
 ```
@@ -67,9 +68,3 @@ echo "export PYTHONPATH="$PWD/libs/efficient-speech-codec:$PYTHONPATH"" >>  ~/.b
 
 source ~/.bashrc
 ```
-
-## EncDec戦略
-
-num_strems = 6 or 5でx89を作成
-num_strems = 2でx88を作成
-num_strems = 1でx87を作成
