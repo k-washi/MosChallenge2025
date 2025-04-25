@@ -157,7 +157,7 @@ if __name__ == "__main__":
     import torch
 
     from track3.core.config import Config
-    from track3.core.dataset.mosdataset import MOSDataset
+    from track3.core.dataset.base.mosdataset import MOSDataset
 
     f = "src/examples/sample.wav"
     config = Config()
