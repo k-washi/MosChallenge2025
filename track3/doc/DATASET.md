@@ -82,3 +82,17 @@ wget https://www.openslr.org/resources/60/train-clean-360.tar.gz
 tar -zxvf train-clean-360.tar.gz
 python track3/dataset/librittsr/formatter.py --input_dir ./data/LibriTTS/train-clean-360/ --output_dir ./data/libritts/wav
 ```
+
+
+
+# データセット平均を取る方法
+
+```bash
+python ./track3/core/dataset/utils/create_mean_mos.py --incsv ./data/mos/bvccmain/test.csv --outcsv /data/mosranking/bvccmain/test.csv
+```
+
+# track3のデータセットをfoldに分ける
+
+```bash
+python ./track3/core/dataset/utils/create_fold_by_utt.py --input_dir ./data/mos/track3/ --output_dir /data/mosranking/track3/ --fold 5
+```

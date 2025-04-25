@@ -5,6 +5,36 @@ import yaml
 from esc import ESC  # pyright: ignore[reportMissingImports]
 
 
+def sub_padding(x: torch.Tensor, multiple: int = 160, sub_multiple: int = 4) -> torch.Tensor:
+    """Sub pad the input tensor to the nearest multiple of the specified value.
+
+    Args:
+    ----
+        x (torch.Tensor): Input tensor.
+        multiple (int): The value to pad to. Defaults to 160.
+        sub_multiple (int): The value to sub pad to. Defaults to 4.
+
+    Returns:
+    -------
+        torch.Tensor: Padded tensor.
+
+    """
+    _, t = x.shape
+    pad = (t) % multiple
+    if pad > 0:
+        x = x[:, :-pad]
+    # multipleの倍数になっている
+    _, t = x.shape
+    sub_t = t / multiple
+    if sub_t % sub_multiple != 0:
+        sub_t = int(sub_t)
+        pad = (sub_t) % sub_multiple
+        if pad > 0:
+            x = x[:, : -pad * multiple]
+
+    return x
+
+
 class ESCodec:
     """ESCodec class for encoding and decoding audio using the ESC model."""
 
@@ -29,7 +59,13 @@ class ESCodec:
         self.model = ESC(**config["model"])
         self.model.load_state_dict(state_dict)
 
-    def encode(self, audio: torch.Tensor, num_streams: int = 6) -> tuple[torch.Tensor, torch.Tensor]:
+    def encode(
+        self,
+        audio: torch.Tensor,
+        num_streams: int = 6,
+        multiple: int = 160,
+        sub_multiple: int = 4,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Encode the input audio using the ESCodec model.
 
         Args:
@@ -37,12 +73,15 @@ class ESCodec:
             audio (torch.Tensor): Input audio tensor.
             num_streams (int): Number of streams to use for encoding (num_streams*1.5kbps).
                 Defaults to 6.
+            multiple (int): The value to pad to. Defaults to 160.
+            sub_multiple (int): The value to sub pad to. Defaults to 4.
 
         Returns:
         -------
             torch.Tensor: Encoded audio tensor.
 
         """
+        audio = sub_padding(audio, multiple=multiple, sub_multiple=sub_multiple)
         with torch.no_grad():
             codes, f_shape = self.model.encode(audio, num_streams)
         return codes, f_shape

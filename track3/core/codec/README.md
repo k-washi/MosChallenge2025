@@ -15,7 +15,6 @@ x88はnum_streams = 6で劣化
 x87はnum_streams = 2で劣化
 x86はnum_streams = 1で劣化
 
-x78は、nvidia/low-frame-rate-speech-codec-22khzで劣化
 x77は、nvidia/low-frame-rate-speech-codec-22khzで劣化 + codecをmax 9/10でclamp
 x76は、nvidia/low-frame-rate-speech-codec-22khzで劣化 + codecをmax 7/10でclamp 
 
@@ -67,4 +66,23 @@ unzip ./pretrained/esc_large_non_adv.zip -d ./pretrained/
 echo "export PYTHONPATH="$PWD/libs/efficient-speech-codec:$PYTHONPATH"" >>  ~/.bashrc
 
 source ~/.bashrc
+```
+
+# 実行
+
+```bash
+python ./track3/core/codec/process/esc_process.py --target_dir /data/mosranking/track3/199/
+python ./track3/core/codec/process/esc_process.py --target_dir /data/mosranking/somos/199/
+python ./track3/core/codec/process/esc_process.py --target_dir /data/mosranking/bvccmain/199/
+python ./track3/core/codec/process/esc_process.py --target_dir /data/mosranking/bvccodd/199/
+python ./track3/core/codec/process/esc_process.py --target_dir /data/mosranking/libritts/199/
+python ./track3/core/codec/process/esc_process.py --target_dir /data/mosranking/libritts/299/
+
+
+python ./track3/core/codec/process/ncodec_process.py --target_dir /data/mosranking/track3/199/ --batch_size 4
+python ./track3/core/codec/process/ncodec_process.py --target_dir /data/mosranking/somos/199/ --batch_size 4
+python ./track3/core/codec/process/ncodec_process.py --target_dir /data/mosranking/bvccmain/199/ --batch_size 4
+python ./track3/core/codec/process/ncodec_process.py --target_dir /data/mosranking/bvccodd/199/ --batch_size 4
+python ./track3/core/codec/process/ncodec_process.py --target_dir /data/mosranking/libritts/199/ --batch_size 4
+python ./track3/core/codec/process/ncodec_process.py --target_dir /data/mosranking/libritts/299/ --batch_size 4
 ```
