@@ -55,7 +55,6 @@ class MOSPredictorW2V2(nn.Module):
             ssl_out = self.ssl_model(x).last_hidden_state  # (batch_size, seq_len, ssl_out_dim)
         else:
             ssl_out = self.ssl_model(x, attention_mask=attention_mask).last_hidden_state  # (batch_size, seq_len, ssl_out_dim)
-
         if attention_mask is not None:
             # Apply attention mask to the output
             output_seq_len = ssl_out.size(1)

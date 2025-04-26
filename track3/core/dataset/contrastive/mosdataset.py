@@ -48,7 +48,7 @@ class MOSDataset(torch.utils.data.Dataset):
             self.dataset_map[dataset_name].append((audio_file, score))
 
         # データセット数をcontrastiveデータに合わせる
-        if is_dataextend:
+        if is_dataextend and config.data.extend_rate > 0.0:
             dataset_length = len(dataset_list)
             contrastive_dataset_length = len(contrastive_dataset_list)
             if dataset_length < contrastive_dataset_length:

@@ -67,36 +67,50 @@ class MOSPredictorModule(LightningModule):
 
         """
         # マージンありL1lossの計算
-        l1loss_1 = F.relu(torch.abs(pred1 - mos_score1) - self.c.loss.l1_loss_margin)
-        mask = mos_score1 >= self.c.data.label_norm_min
-        l1loss_1 = l1loss_1[mask].mean() if mask.any() else torch.zeros(1, device=pred1.device)
+        mask = (mos_score1 >= self.c.data.label_norm_min).float()
+        diff1 = torch.abs(pred1 - mos_score1).clamp(max=1.0)
+        l1loss_1 = F.smooth_l1_loss(
+            diff1, torch.zeros_like(diff1, device=pred1.device), reduction="none", beta=self.c.loss.l1_loss_margin
+        )
+        l1loss_1 = torch.sum(mask * l1loss_1) / (mask.sum() + 1e-6)
 
-        l1loss_2 = F.relu(torch.abs(pred2 - mos_score2) - self.c.loss.l1_loss_margin)
-        mask = mos_score2 >= self.c.data.label_norm_min
-        l1loss_2 = l1loss_2[mask].mean() if mask.any() else torch.zeros(1, device=pred2.device)
+        mask = (mos_score2 >= self.c.data.label_norm_min).float()
+        diff2 = torch.abs(pred2 - mos_score2).clamp(max=1.0)
+        l1loss_2 = F.smooth_l1_loss(
+            diff2, torch.zeros_like(diff2, device=pred2.device), reduction="none", beta=self.c.loss.l1_loss_margin
+        )
+        l1loss_2 = torch.sum(mask * l1loss_2) / (mask.sum() + 1e-6)
 
         # MOSPO
         # mosの情報がない場合id1 > id2となる
-        mask = (mos_score1 < self.c.data.label_norm_min) | (mos_score2 < self.c.data.label_norm_min)
-        if mask.sum() == 0:
-            loss_r = torch.zeros(1, device=pred1.device)
-        else:
-            loss_r = F.margin_ranking_loss(
-                input1=pred1[mask],
-                input2=pred2[mask],
-                target=torch.ones_like(pred1[mask], dtype=torch.float32, device=pred1.device),
+        mask = (
+            (mos_score1 < self.c.data.label_norm_min)
+            | (mos_score2 < self.c.data.label_norm_min)
+            | (
+                (mos_score1 >= self.c.data.label_norm_min)
+                & (mos_score2 >= self.c.data.label_norm_min)
+                & (mos_score1 > mos_score2)
+            )
+        ).float()
+        loss_r = torch.sum(
+            mask
+            * F.margin_ranking_loss(
+                input1=pred1,
+                input2=pred2,
+                target=torch.ones_like(pred1, dtype=torch.float32, device=pred1.device),
                 margin=self.c.loss.ranking_loss_margin,
-            ).mean()
+                reduction="none",
+            )
+        ) / (mask.sum() + 1e-6)
 
         # UTMOS
         # mosの情報がある場合id1 > id2はlossとして活用し id1 == id2の場合は無視する
-        mask = (mos_score1 >= self.c.data.label_norm_min) & (mos_score2 >= self.c.data.label_norm_min)
-        if mask.sum() == 0:
-            loss_c = torch.zeros(1, device=pred1.device)
-        else:
-            true_mos_diff = mos_score1[mask] - mos_score2[mask]
-            pred_mos_diff = pred1[mask] - pred2[mask]
-            loss_c = F.relu(torch.abs(true_mos_diff - pred_mos_diff) - self.c.loss.contrastive_loss_margin).mean()
+        mask = ((mos_score1 >= self.c.data.label_norm_min) & (mos_score2 >= self.c.data.label_norm_min)).float()
+        true_mos_diff = (mos_score1 - mos_score2).clamp(-2.0, 2.0)
+        pred_mos_diff = (pred1 - pred2).clamp(-2.0, 2.0)
+        loss_c = torch.sum(mask * F.relu(torch.abs(true_mos_diff - pred_mos_diff) - self.c.loss.contrastive_loss_margin)) / (
+            mask.sum() + 1e-6
+        )
         return l1loss_1, l1loss_2, loss_r, loss_c
 
     def training_step(self, batch: dict, batch_idx: int) -> torch.Tensor:
@@ -122,7 +136,7 @@ class MOSPredictorModule(LightningModule):
         l1_rate = self.c.loss.l1_rate_min + (self.c.loss.l1_rate_max - self.c.loss.l1_rate_min) * (
             self.global_step / self.total_train_steps
         )
-        loss = l1_rate * (l1loss_1 + l1loss_2) + (1 - l1_rate) * (loss_r + loss_c)
+        loss = l1_rate * (l1loss_1 + l1loss_2) + self.c.loss.rank_rate * loss_r + self.c.loss.cl_rate * loss_c
 
         self.log("train/l1loss01", l1loss_1, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("train/l1loss02", l1loss_2, on_step=True, on_epoch=True, prog_bar=True, logger=True)
@@ -159,7 +173,7 @@ class MOSPredictorModule(LightningModule):
         l1_rate = self.c.loss.l1_rate_min + (self.c.loss.l1_rate_max - self.c.loss.l1_rate_min) * (
             self.global_step / self.total_train_steps
         )
-        loss = l1_rate * (l1loss_1 + l1loss_2) + (1 - l1_rate) * (loss_r + loss_c)
+        loss = l1_rate * (l1loss_1 + l1loss_2) + self.c.loss.rank_rate * loss_r + self.c.loss.cl_rate * loss_c
         self.log("val/l1loss01", l1loss_1, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("val/l1loss02", l1loss_2, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("val/loss_r", loss_r, on_step=True, on_epoch=True, prog_bar=True, logger=True)

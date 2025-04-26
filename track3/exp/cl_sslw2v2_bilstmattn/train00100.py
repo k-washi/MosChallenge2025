@@ -20,7 +20,7 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "01102"
+VERSION = "01104"
 EXP_ID = "cl_sslw2v2_bilstmattn"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -45,6 +45,7 @@ _train_contrastive_list, train_dataset_list = get_labeldata_list(
     dataset_csv_list=TRAIN_LIST,
 )
 train_contrastive_list.extend(_train_contrastive_list)
+train_dataset_list = []
 print(f"train_len: {len(train_dataset_list)}")
 print(f"train_contrastive_len: {len(train_contrastive_list)}")
 
@@ -61,6 +62,7 @@ VAL_LIST = [
 val_contrastive_list, val_dataset_list = get_labeldata_list(
     dataset_csv_list=VAL_LIST,
 )
+val_contrastive_list = []
 
 print(f"val_len: {len(val_dataset_list)}")
 print(f"val_contrastive_len: {len(val_contrastive_list)}")
@@ -68,17 +70,17 @@ print(f"val_contrastive_len: {len(val_contrastive_list)}")
 cfg.ml.num_epochs = 1
 cfg.ml.batch_size = 6
 cfg.ml.test_batch_size = 6
-cfg.ml.num_workers = 8
+cfg.ml.num_workers = 4
 cfg.ml.accumulate_grad_num = 4
 cfg.ml.grad_clip_val = 1
-cfg.ml.check_val_every_n_steps = 10000
+cfg.ml.check_val_every_n_steps = 5000
 cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
-cfg.ml.optimizer.lr = 5e-5
-cfg.ml.optimizer.weight_decay = 0.005
-cfg.ml.optimizer.adam_epsilon = 5e-5
-cfg.ml.optimizer.warmup_epoch = 0.1  # 全エポックの1割くらい
+cfg.ml.optimizer.lr = 8e-6
+cfg.ml.optimizer.weight_decay = 0.01
+cfg.ml.optimizer.adam_epsilon = 1e-8
+cfg.ml.optimizer.warmup_epoch = 0.005  # 全エポックの1割くらい
 cfg.ml.optimizer.num_cycles = 0.5
 
 cfg.path.model_save_dir = f"{LOG_SAVE_DIR}/ckpt"
@@ -96,6 +98,15 @@ cfg.data.time_wrap_max = 1.05
 cfg.data.time_wrap_min = 0.95
 cfg.data.is_label_normalize = True
 cfg.data.is_extend = True
+cfg.data.extend_rate = 0
+
+# loss
+cfg.loss.l1_rate_min = 0.0
+cfg.loss.l1_rate_max = 0.0
+cfg.loss.cl_rate = 0.0
+cfg.loss.rank_rate = 100
+cfg.loss.l1_loss_margin = 0.05
+cfg.loss.contrastive_loss_margin = 0.2
 
 
 def train() -> None:

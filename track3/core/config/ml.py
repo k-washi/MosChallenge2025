@@ -3,6 +3,9 @@ class OptimizerConfig:
 
     optimizer_name: str = "adamw"
     lr: float = 1e-4
+    ssl_lr: float = 2e-6
+    lstm_lr: float = 5e-6
+    head_lr: float = 1e-5
     weight_decay: float = 1e-4
     adam_epsilon: float = 1e-8
 
