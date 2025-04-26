@@ -149,5 +149,5 @@ setup/cusparselt*
 cusparselt*
 lightning_logs/
 wandb/
-moschallenge2025track3/
+moschallenge2025*
 pretrained
