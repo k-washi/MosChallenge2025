@@ -6,7 +6,7 @@ class OptimizerConfig:
     weight_decay: float = 1e-4
     adam_epsilon: float = 1e-8
 
-    warmup_epoch: int = 1
+    warmup_epoch: float = 1
     num_cycles: float = 0.5
 
 

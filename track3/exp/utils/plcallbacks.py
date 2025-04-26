@@ -52,7 +52,7 @@ class CheckpointEverySteps(pl.Callback):
         """Check if we should save a checkpoint after every train epoch."""
         _ = pl_module
         _, _, _ = outputs, batch, batch_idx
-        self.global_step = trainer.global_step
+        self.global_step = trainer.global_step * trainer.accumulate_grad_batches
         if self.global_step % self.every_n_steps == 0 and self.global_step > 0:
             save_dir = Path(f"{self.save_dir}") / f"ckpt-{self.global_step}"
             save_dir.mkdir(exist_ok=True, parents=True)

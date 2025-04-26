@@ -90,13 +90,13 @@ class MOSPredictorModule(LightningModule):
 
         # UTMOS
         # mosの情報がある場合id1 > id2はlossとして活用し id1 == id2の場合は無視する
-        mask = (mos_score1 >= self.c.data.label_norm_min) & (mos_score1 >= self.c.data.label_norm_max)
+        mask = (mos_score1 >= self.c.data.label_norm_min) & (mos_score2 >= self.c.data.label_norm_min)
         if mask.sum() == 0:
             loss_c = torch.zeros(1, device=pred1.device)
         else:
             true_mos_diff = mos_score1[mask] - mos_score2[mask]
             pred_mos_diff = pred1[mask] - pred2[mask]
-            loss_c = F.relu(torch.abs(true_mos_diff - pred_mos_diff) - self.c.loss.contrastive_loss_margin)
+            loss_c = F.relu(torch.abs(true_mos_diff - pred_mos_diff) - self.c.loss.contrastive_loss_margin).mean()
         return l1loss_1, l1loss_2, loss_r, loss_c
 
     def training_step(self, batch: dict, batch_idx: int) -> torch.Tensor:
@@ -169,9 +169,8 @@ class MOSPredictorModule(LightningModule):
 
         mask = mos_score1 > self.c.data.label_norm_min
         pred1 = pred1[mask].detach().cpu()
-        mos_score1 = pred1[mask].detach().cpu()
-        wav_fp_list = wav_fp_list[mask]
-
+        mos_score1 = mos_score1[mask].detach().cpu()
+        wav_fp_list = [wav_fp for i, wav_fp in enumerate(wav_fp_list) if mask[i]]
         for wav_fp, pred_mos, true_mos in zip(wav_fp_list, pred1, mos_score1, strict=False):
             self.dataset_mos_list.append((wav_fp, pred_mos.item(), true_mos.item()))
 
