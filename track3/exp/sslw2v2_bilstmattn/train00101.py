@@ -12,7 +12,7 @@ from lightning.pytorch.callbacks import LearningRateMonitor
 from lightning.pytorch.loggers import WandbLogger
 
 from track3.core.config import Config
-from track3.core.dataset.mospl import MOSDataModule
+from track3.core.dataset.base.mospl import MOSDataModule
 from track3.core.models.sslpl import MOSPredictorModule
 from track3.exp.utils import CheckpointEveryEpoch, get_datset_fp_label_mean
 

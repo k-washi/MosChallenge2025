@@ -1,7 +1,9 @@
 from pathlib import Path
+from typing import Any
 
 import lightning.pytorch as pl
 import torch
+from lightning.pytorch.utilities.types import STEP_OUTPUT
 
 
 class CheckpointEveryEpoch(pl.Callback):
@@ -23,6 +25,38 @@ class CheckpointEveryEpoch(pl.Callback):
             save_dir.mkdir(exist_ok=True, parents=True)
             save_path = save_dir / "model.ckpt"
 
+            if hasattr(trainer, "model"):
+                if hasattr(trainer.model, "module"):
+                    torch.save(trainer.model.module.state_dict(), save_path)  # pyright: ignore[reportOptionalMemberAccess, reportAttributeAccessIssue]
+
+                else:
+                    torch.save(trainer.model.state_dict(), save_path)  # pyright: ignore[reportOptionalMemberAccess]
+                return
+
+            emsg = "Model not found."
+            raise ValueError(emsg)
+
+
+class CheckpointEverySteps(pl.Callback):
+    """Checkpoint every n step."""
+
+    def __init__(self, save_dir: str, every_n_steps: int = 10000) -> None:
+        """Checkpoint every n epochs."""
+        self.save_dir = save_dir
+        self.epochs = 0
+        self.every_n_steps = every_n_steps
+
+    def on_train_batch_end(
+        self, trainer: pl.Trainer, pl_module: pl.LightningModule, outputs: STEP_OUTPUT, batch: Any, batch_idx: int
+    ) -> None:
+        """Check if we should save a checkpoint after every train epoch."""
+        _ = pl_module
+        _, _, _ = outputs, batch, batch_idx
+        self.global_step = trainer.global_step
+        if self.global_step % self.every_n_steps == 0 and self.global_step > 0:
+            save_dir = Path(f"{self.save_dir}") / f"ckpt-{self.global_step}"
+            save_dir.mkdir(exist_ok=True, parents=True)
+            save_path = save_dir / "model.ckpt"
             if hasattr(trainer, "model"):
                 if hasattr(trainer.model, "module"):
                     torch.save(trainer.model.module.state_dict(), save_path)  # pyright: ignore[reportOptionalMemberAccess, reportAttributeAccessIssue]

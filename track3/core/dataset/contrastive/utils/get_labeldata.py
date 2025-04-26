@@ -21,8 +21,8 @@ SCORE_SET_DIR = ["199"]
 def get_labeldata_list(
     dataset_csv_list: list[str],
 ) -> tuple[
-    list[tuple[tuple[str | Path, int], tuple[str | Path, int]]],
-    list[tuple[str | Path, int, str]],
+    list[tuple[tuple[str | Path, float], tuple[str | Path, float]]],
+    list[tuple[str | Path, float, str]],
 ]:
     """Get the file paths and labels from the dataset.
 
@@ -32,8 +32,8 @@ def get_labeldata_list(
 
     Returns:
     -------
-        list[tuple[tuple[str | Path, int], tuple[str | Path, int]]]: List of tuples containing file paths and labels.
-        list[tuple[str | Path, int, str]]: List of tuples containing file paths, labels, and dataset names.
+        list[tuple[tuple[str | Path, float], tuple[str | Path, float]]]: List of tuples containing file paths and labels.
+        list[tuple[str | Path, float, str]]: List of tuples containing file paths, labels, and dataset names.
 
     """
     output_list = []

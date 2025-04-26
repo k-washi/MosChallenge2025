@@ -19,6 +19,7 @@ class MLConfig:
     num_workers: int = 4
     grad_clip_val: float = 500
     check_val_every_n_epoch: int = 1
+    check_val_every_n_steps: int = 10000
     mix_precision: str = "32"
 
     num_epochs: int = 10

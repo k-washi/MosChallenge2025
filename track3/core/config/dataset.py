@@ -13,6 +13,12 @@ class DatasetConfig:
     train_dataset_num: int = -1
 
     # aug
-    pitch_shift_max: int = 300
-    time_wrap_min: float = 0.9
-    time_wrap_max: float = 1.1
+    aug_rate: float = 0.5
+    pitch_shift_max: int = 150
+    time_wrap_min: float = 0.95
+    time_wrap_max: float = 1.05
+
+    # dataset extend
+    # contrastiveのデータに対してmosスコアが付いているデータが少ないので拡張する
+    is_extend: bool = False
+    extend_rate: float = 0.1  # mosがついているデータをextendする割合

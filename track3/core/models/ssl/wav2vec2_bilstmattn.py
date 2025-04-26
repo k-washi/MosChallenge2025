@@ -19,7 +19,12 @@ class MOSPredictorW2V2(nn.Module):
     [Linear] → [batch, 1]（スカラー出力）
     """
 
-    def __init__(self, dropout: float = 0.1, pretrained_model_name: str = "facebook/wav2vec2-base-960h") -> None:
+    def __init__(
+        self,
+        dropout: float = 0.1,
+        pretrained_model_name: str = "facebook/wav2vec2-base-960h",
+        lstm_layrs: int = 3,
+    ) -> None:
         """Initialize the MOSPredictorW2V model."""
         super().__init__()
 
@@ -28,7 +33,7 @@ class MOSPredictorW2V2(nn.Module):
         self.head = BiLSTMWithAttention(
             input_dim=hidden_size,
             lstm_hidden_dim=hidden_size // 2,
-            lstm_layers=2,
+            lstm_layers=lstm_layrs,
             dropout=dropout,
         )
 

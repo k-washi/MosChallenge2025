@@ -29,7 +29,7 @@ CONTRASTIVE_DATASET_LIST2 = [
 CONTRASTIVE_DATASET_LIST3 = [("299", "199"), ("299", "188"), ("299", "187"), ("299", "186"), ("299", "177"), ("299", "176")]
 
 
-def get_nolabel_list(dataset_dir: str) -> list[tuple[tuple[str | Path, int], tuple[str | Path, int]]]:
+def get_nolabel_list(dataset_dir: str) -> list[tuple[tuple[str | Path, float], tuple[str | Path, float]]]:
     """Get the file paths from the dataset without labels.
 
     データのMOSの大小
