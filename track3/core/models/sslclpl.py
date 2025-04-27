@@ -95,13 +95,13 @@ class MOSPredictorModule(LightningModule):
         loss_r = torch.sum(
             mask
             * F.margin_ranking_loss(
-                input1=pred1,
-                input2=pred2,
+                input1=pred1.clamp(-1, 1),
+                input2=pred2.clamp(-1, 1),
                 target=torch.ones_like(pred1, dtype=torch.float32, device=pred1.device),
                 margin=self.c.loss.ranking_loss_margin,
                 reduction="none",
             )
-        ) / (mask.sum() + 1e-6)
+        ) / (mask.sum() + 1e-6) + torch.sum(mask * 1e-4 * (pred1.abs() + pred2.abs())) / (mask.sum() + 1e-6)
 
         # UTMOS
         # mosの情報がある場合id1 > id2はlossとして活用し id1 == id2の場合は無視する
@@ -129,8 +129,7 @@ class MOSPredictorModule(LightningModule):
         _ = batch_idx
         wavs1, attention_mask1, mos_score1, _, wavs2, attention_mask2, mos_score2, _ = batch
         pred = self(torch.cat([wavs1, wavs2], dim=0), attention_mask=torch.cat([attention_mask1, attention_mask2], dim=0))
-        pred1 = pred[: len(wavs1)]
-        pred2 = pred[len(wavs2) :]
+        pred1, pred2 = torch.split(pred, [len(wavs1), len(wavs2)], dim=0)
 
         l1loss_1, l1loss_2, loss_r, loss_c = self._caculate_loss(pred1, pred2, mos_score1, mos_score2)
         l1_rate = self.c.loss.l1_rate_min + (self.c.loss.l1_rate_max - self.c.loss.l1_rate_min) * (
@@ -166,8 +165,7 @@ class MOSPredictorModule(LightningModule):
         _ = batch_idx
         wavs1, attention_mask1, mos_score1, wav_fp_list, wavs2, attention_mask2, mos_score2, _ = batch
         pred = self(torch.cat([wavs1, wavs2], dim=0), attention_mask=torch.cat([attention_mask1, attention_mask2], dim=0))
-        pred1 = pred[: len(wavs1)]
-        pred2 = pred[len(wavs2) :]
+        pred1, pred2 = torch.split(pred, [len(wavs1), len(wavs2)], dim=0)
 
         l1loss_1, l1loss_2, loss_r, loss_c = self._caculate_loss(pred1, pred2, mos_score1, mos_score2)
         l1_rate = self.c.loss.l1_rate_min + (self.c.loss.l1_rate_max - self.c.loss.l1_rate_min) * (
@@ -181,7 +179,7 @@ class MOSPredictorModule(LightningModule):
 
         self.log("val/loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, batch_size=self.c.ml.test_batch_size)
 
-        mask = mos_score1 > self.c.data.label_norm_min
+        mask = mos_score1 >= self.c.data.label_norm_min
         pred1 = pred1[mask].detach().cpu()
         mos_score1 = mos_score1[mask].detach().cpu()
         wav_fp_list = [wav_fp for i, wav_fp in enumerate(wav_fp_list) if mask[i]]
@@ -231,7 +229,7 @@ class MOSPredictorModule(LightningModule):
             self.log(f"val/{dataset_name}/ktau", ktau, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
             output_df = pd.DataFrame(result["data"], columns=["audio", "pred", "true"])  # pyright: ignore[reportArgumentType]
-            output_fp = Path(self.c.path.val_save_dir) / f"{self.current_epoch:05d}" / f"{dataset_name}.csv"
+            output_fp = Path(self.c.path.val_save_dir) / f"{self.global_step}" / f"{dataset_name}.csv"
             output_fp.parent.mkdir(parents=True, exist_ok=True)
             output_df.to_csv(output_fp, index=False)
 
@@ -240,21 +238,35 @@ class MOSPredictorModule(LightningModule):
         no_decay = ["bias", "LayerNorm.weight"]
 
         # https://tma15.github.io/blog/2021/09/17/deep-learningbert%E5%AD%A6%E7%BF%92%E6%99%82%E3%81%ABbias%E3%82%84layer-normalization%E3%82%92weight-decay%E3%81%97%E3%81%AA%E3%81%84%E7%90%86%E7%94%B1/#weight-decay%E3%81%AE%E5%AF%BE%E8%B1%A1%E5%A4%96%E3%81%A8%E3%81%AA%E3%82%8B%E3%83%91%E3%83%A9%E3%83%A1%E3%83%BC%E3%82%BF
-        optimizer_grouped_parameters = [
+
+        ssl_grouped_parameters = [
             {
-                "params": [p for n, p in self.model.named_parameters() if not any(nd in n for nd in no_decay)],
+                "params": [p for n, p in self.model.ssl_model.named_parameters() if not any(nd in n for nd in no_decay)],  # pyright: ignore[reportAttributeAccessIssue]
                 "weight_decay": self.c.ml.optimizer.weight_decay,
+                "lr": self.c.ml.optimizer.ssl_lr,
             },
             {
-                "params": [p for n, p in self.model.named_parameters() if any(nd in n for nd in no_decay)],
+                "params": [p for n, p in self.model.ssl_model.named_parameters() if any(nd in n for nd in no_decay)],  # pyright: ignore[reportAttributeAccessIssue]
                 "weight_decay": 0.0,
+                "lr": self.c.ml.optimizer.ssl_lr,
+            },
+        ]
+        head_optimizer_grouped_parameters = [
+            {
+                "params": [p for n, p in self.model.head.named_parameters() if not any(nd in n for nd in no_decay)],  # pyright: ignore[reportAttributeAccessIssue]
+                "weight_decay": self.c.ml.optimizer.weight_decay,
+                "lr": self.c.ml.optimizer.head_lr,
+            },
+            {
+                "params": [p for n, p in self.model.head.named_parameters() if any(nd in n for nd in no_decay)],  # pyright: ignore[reportAttributeAccessIssue]
+                "weight_decay": 0.0,
+                "lr": self.c.ml.optimizer.head_lr,
             },
         ]
 
         if self.c.ml.optimizer.optimizer_name == "adamw":
             optimizer = torch.optim.AdamW(
-                optimizer_grouped_parameters,
-                lr=self.c.ml.optimizer.lr,
+                [*ssl_grouped_parameters, *head_optimizer_grouped_parameters],
                 eps=self.c.ml.optimizer.adam_epsilon,
             )
         else:
