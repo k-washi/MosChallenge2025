@@ -101,7 +101,7 @@ class MOSPredictorModule(LightningModule):
                 margin=self.c.loss.ranking_loss_margin,
                 reduction="none",
             )
-        ) / (mask.sum() + 1e-6) + torch.sum(mask * 1e-4 * (pred1.abs() + pred2.abs())) / (mask.sum() + 1e-6)
+        ) / (mask.sum() + 1e-6)
 
         # UTMOS
         # mosの情報がある場合id1 > id2はlossとして活用し id1 == id2の場合は無視する
