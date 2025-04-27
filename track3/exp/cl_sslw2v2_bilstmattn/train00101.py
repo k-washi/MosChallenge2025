@@ -83,10 +83,11 @@ cfg.path.val_save_dir = f"{LOG_SAVE_DIR}/val"
 # model
 cfg.model.model_name = "wav2vec2_bilstmattn"
 cfg.model.w2v2.pretrained_model_name = "facebook/wav2vec2-base-960h"
-cfg.model.w2v2.dropout = 0.3
+cfg.model.w2v2.dropout = 0.1
 cfg.model.w2v2.is_freeze_ssl = False
 
 # dataset
+cfg.data.max_duration = 10
 cfg.data.pitch_shift_max = 2
 cfg.data.time_wrap_max = 1.05
 cfg.data.time_wrap_min = 0.95
@@ -97,7 +98,7 @@ cfg.data.extend_rate = 1
 # loss
 cfg.loss.l1_rate_min = 0.1
 cfg.loss.l1_rate_max = 0.8
-cfg.loss.cl_rate = 0.0
+cfg.loss.cl_rate = 0.5
 cfg.loss.rank_rate = 0.5
 cfg.loss.l1_loss_margin = 0.05
 cfg.loss.contrastive_loss_margin = 0.2
