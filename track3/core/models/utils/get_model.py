@@ -38,6 +38,17 @@ def get_model(config: ModelConfig, model_name: str) -> torch.nn.Module:
         )
         if config.w2v2.is_freeze_ssl:
             model.freaze_ssl()
+    elif model_name == "wav2vec2_bilstmattention":
+        from track3.core.models.ssl.wav2vec2_bilstmattention import MOSPredictorW2V2
+
+        model = MOSPredictorW2V2(
+            dropout=config.w2v2.dropout,
+            lstm_dropout=config.w2v2.lstm_dropout,
+            pretrained_model_name=config.w2v2.pretrained_model_name,
+            lstm_layrs=config.w2v2.lstm_layers,
+        )
+        if config.w2v2.is_freeze_ssl:
+            model.freaze_ssl()
     else:
         emsg = f"Model {model_name} not found."
         raise ValueError(emsg)

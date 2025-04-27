@@ -1,4 +1,4 @@
-MODEL_LIST = ["wav2vec2_linear", "wav2vec2_bilstmattn"]
+MODEL_LIST = ["wav2vec2_linear", "wav2vec2_bilstmattn", "wav2vec2_bilstmattention"]
 
 
 class Wav2Vec2Config:
@@ -6,6 +6,8 @@ class Wav2Vec2Config:
 
     ssl_out_dim: int = 768
     dropout: float = 0.1
+    lstm_dropout: float = 0.05
+    lstm_layers: int = 3
     pretrained_model_name: str = "facebook/wav2vec2-base-960h"
     is_freeze_ssl: bool = False
 

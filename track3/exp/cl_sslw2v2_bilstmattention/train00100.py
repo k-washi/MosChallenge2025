@@ -20,8 +20,8 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "01106"
-EXP_ID = "cl_sslw2v2_bilstmattn"
+VERSION = "01301"
+EXP_ID = "cl_sslw2v2_bilstmattention"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
 FAST_DEV_RUN = False
@@ -70,25 +70,27 @@ cfg.ml.batch_size = 6
 cfg.ml.test_batch_size = 6
 cfg.ml.num_workers = 4
 cfg.ml.accumulate_grad_num = 4
-cfg.ml.grad_clip_val = 1
+cfg.ml.grad_clip_val = 1.0
 cfg.ml.check_val_every_n_steps = 5000
 cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
-cfg.ml.optimizer.ssl_lr = 2e-6
-cfg.ml.optimizer.head_lr = 2e-5
+cfg.ml.optimizer.ssl_lr = 5e-6
+cfg.ml.optimizer.head_lr = 5e-5
 cfg.ml.optimizer.weight_decay = 0.01
 cfg.ml.optimizer.adam_epsilon = 1e-8
-cfg.ml.optimizer.warmup_epoch = 0.005  # 全エポックの1割くらい
+cfg.ml.optimizer.warmup_epoch = 0.01  # 全エポックの1割くらい
 cfg.ml.optimizer.num_cycles = 0.5
 
 cfg.path.model_save_dir = f"{LOG_SAVE_DIR}/ckpt"
 cfg.path.val_save_dir = f"{LOG_SAVE_DIR}/val"
 
 # model
-cfg.model.model_name = "wav2vec2_bilstmattn"
+cfg.model.model_name = "wav2vec2_bilstmattention"
 cfg.model.w2v2.pretrained_model_name = "facebook/wav2vec2-base-960h"
 cfg.model.w2v2.dropout = 0.05
+cfg.model.w2v2.lstm_layers = 3
+cfg.model.w2v2.lstm_dropout = 0.2
 cfg.model.w2v2.is_freeze_ssl = False
 
 # dataset
@@ -100,12 +102,12 @@ cfg.data.is_extend = True
 cfg.data.extend_rate = 1.0
 
 # loss
-cfg.loss.l1_rate_min = 0.2
-cfg.loss.l1_rate_max = 0.8
-cfg.loss.cl_rate = 0.5
+cfg.loss.l1_rate_min = 0.1
+cfg.loss.l1_rate_max = 1
+cfg.loss.cl_rate = 0.2
 cfg.loss.rank_rate = 1
 cfg.loss.l1_loss_margin = 0.05
-cfg.loss.contrastive_loss_margin = 0.2
+cfg.loss.contrastive_loss_margin = 1
 
 
 def train() -> None:
