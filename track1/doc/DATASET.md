@@ -26,5 +26,5 @@ audiosr -il ../wav_list.lst -s ../wav48k_audiosr --model_name basic --ddim_steps
 Aux featureの作成
 
 ```bash
-wget https://zenodo.org/record/3987831/files/Cnn14_mAP%3D0.431.pth -P ./pretrained/
+wget https://zenodo.org/record/3987831/files/Cnn14_16k_mAP%3D0.438.pth -P ./pretrained/
 ```

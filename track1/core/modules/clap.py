@@ -1,5 +1,5 @@
 import torch
-from transformers import ClapModel, ClapProcessor
+from transformers import ClapModel, ClapProcessor  # pyright: ignore[reportPrivateImportUsage]
 
 from src.audio import load_wave
 
@@ -15,7 +15,7 @@ class ClapEmbedding:
         super().__init__()
         self.device = device
         self.processor = ClapProcessor.from_pretrained(pretrained_model_name)
-        self.model = ClapModel.from_pretrained(pretrained_model_name).to(device)  # pyright: ignore[reportAttributeAccessIssue]
+        self.model = ClapModel.from_pretrained(pretrained_model_name).to(device)  # pyright: ignore[reportAttributeAccessIssue, reportArgumentType]
 
     def embedding_audio(self, wav_path: str) -> torch.Tensor:
         """Extract audio features using CLAP.
@@ -32,9 +32,9 @@ class ClapEmbedding:
         # Load the audio file
         wav, _ = load_wave(wav_path, sample_rate=CLAP_SR, mono=True, is_torch=True)
         assert isinstance(wav, torch.Tensor), f"Audio file {wav_path} is not a torch tensor."
-
+        wav = wav / (wav.abs().max() * 1.0001)  # Normalize
         # Preprocess the audio
-        inputs = self.processor(audios=wav, sampling_rate=CLAP_SR, return_tensors="pt", padding=True).to(self.device)
+        inputs = self.processor(audios=wav, sampling_rate=CLAP_SR, return_tensors="pt", padding=True).to(self.device)  # pyright: ignore[reportCallIssue]
 
         # Extract features
         with torch.no_grad():
@@ -54,7 +54,7 @@ class ClapEmbedding:
 
         """
         # Preprocess the text
-        inputs = self.processor(text=[text], return_tensors="pt", padding=True).to(self.device)
+        inputs = self.processor(text=[text], return_tensors="pt", padding=True).to(self.device)  # pyright: ignore[reportCallIssue]
 
         # Extract features
         with torch.no_grad():
