@@ -25,6 +25,7 @@ class MOSPredictorW2V2(nn.Module):
         lstm_dropout: float = 0.05,
         pretrained_model_name: str = "facebook/wav2vec2-base-960h",
         lstm_layrs: int = 3,
+        lstm_hidden_dim: int = 256,
     ) -> None:
         """Initialize the MOSPredictorW2V model."""
         super().__init__()
@@ -33,7 +34,7 @@ class MOSPredictorW2V2(nn.Module):
         hidden_size = self.ssl_model.config.hidden_size
         self.head = BiLSTMWithAttention(
             input_dim=hidden_size,
-            lstm_hidden_dim=hidden_size // 2,
+            lstm_hidden_dim=lstm_hidden_dim,
             lstm_layers=lstm_layrs,
             dropout=dropout,
             lstm_dropout=lstm_dropout,

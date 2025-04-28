@@ -9,9 +9,9 @@ from lightning.pytorch.callbacks import LearningRateMonitor
 from lightning.pytorch.loggers import WandbLogger
 
 from track3.core.config import Config
-from track3.core.dataset.contrastive.mospl import MOSDataModule
-from track3.core.dataset.contrastive.utils import get_labeldata_list, get_nolabel_list
-from track3.core.models.sslclpl import MOSPredictorModule
+from track3.core.dataset.contrastive.utils import get_labeldata_list
+from track3.core.dataset.utmos.mospl import MOSDataModule
+from track3.core.models.utmospl import MOSPredictorModule
 from track3.exp.utils import CheckpointEverySteps
 
 cfg = Config()
@@ -20,8 +20,8 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "01502"
-EXP_ID = "cl_sslw2v2_bilstmattention"
+VERSION = "01303"
+EXP_ID = "utmos_sslw2v2_bilstmattn"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
 FAST_DEV_RUN = False
@@ -30,27 +30,19 @@ LOG_SAVE_DIR = f"logs/{EXP_ID}/v{VERSION}"
 Path(LOG_SAVE_DIR).mkdir(parents=True, exist_ok=True)
 shutil.copy(__file__, LOG_SAVE_DIR)
 
-# Contrastive learning用のラベルなしデータ
-train_contrastive_list = []
-NO_LABEL_TRAIN_LIST = ["/data/mosranking/libritts"]
-for dataset_dir in NO_LABEL_TRAIN_LIST:
-    tmp_train_nolabel_list = get_nolabel_list(dataset_dir=dataset_dir)
-    train_contrastive_list.extend(tmp_train_nolabel_list)
-
+# データの読み込み
 TRAIN_LIST = [
     "/data/mosranking/bvccmain/train.csv",
     "/data/mosranking/somos/train.csv",
 ]
-_train_contrastive_list, train_dataset_list = get_labeldata_list(
+_, train_dataset_list = get_labeldata_list(
     dataset_csv_list=TRAIN_LIST,
 )
-train_contrastive_list.extend(_train_contrastive_list)
 print(f"train_len: {len(train_dataset_list)}")
-print(f"train_contrastive_len: {len(train_contrastive_list)}")
 
 VAL_LIST = [
-    # "/data/mosranking/bvccmain/val.csv",
-    # "/data/mosranking/somos/val.csv",
+    "/data/mosranking/bvccmain/val.csv",
+    "/data/mosranking/somos/val.csv",
     "/data/mosranking/track3/fold_0.csv",
     "/data/mosranking/track3/fold_1.csv",
     "/data/mosranking/track3/fold_2.csv",
@@ -58,28 +50,27 @@ VAL_LIST = [
     "/data/mosranking/track3/fold_4.csv",
 ]
 
-val_contrastive_list, val_dataset_list = get_labeldata_list(
+_, val_dataset_list = get_labeldata_list(
     dataset_csv_list=VAL_LIST,
 )
 
 print(f"val_len: {len(val_dataset_list)}")
-print(f"val_contrastive_len: {len(val_contrastive_list)}")
 
-cfg.ml.num_epochs = 1
-cfg.ml.batch_size = 10
-cfg.ml.test_batch_size = 10
+cfg.ml.num_epochs = 50
+cfg.ml.batch_size = 20
+cfg.ml.test_batch_size = 20
 cfg.ml.num_workers = 4
-cfg.ml.accumulate_grad_num = 3
+cfg.ml.accumulate_grad_num = 1
 cfg.ml.grad_clip_val = 1.0
-cfg.ml.check_val_every_n_steps = 500
+cfg.ml.check_val_every_n_steps = 1000
 cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
 cfg.ml.optimizer.ssl_lr = 8e-6
-cfg.ml.optimizer.head_lr = 5e-5
+cfg.ml.optimizer.head_lr = 2e-5
 cfg.ml.optimizer.weight_decay = 0.01
 cfg.ml.optimizer.adam_epsilon = 1e-8
-cfg.ml.optimizer.warmup_epoch = 0.05  # 全エポックの1割くらい
+cfg.ml.optimizer.warmup_epoch = 2  # 全エポックの1割くらい
 cfg.ml.optimizer.num_cycles = 0.5
 
 cfg.path.model_save_dir = f"{LOG_SAVE_DIR}/ckpt"
@@ -100,16 +91,13 @@ cfg.data.pitch_shift_max = 150
 cfg.data.time_wrap_max = 1.05
 cfg.data.time_wrap_min = 0.95
 cfg.data.is_label_normalize = True
-cfg.data.is_extend = True
-cfg.data.extend_rate = 0.5
 
 # loss
 cfg.loss.l1_rate_min = 0.5
-cfg.loss.l1_rate_max = 2
+cfg.loss.l1_rate_max = 1
 cfg.loss.cl_rate = 0.5
-cfg.loss.rank_rate = 10
-cfg.loss.l1_loss_margin = 0.05
-cfg.loss.contrastive_loss_margin = 1
+cfg.loss.l1_loss_margin = 0.2
+cfg.loss.contrastive_loss_margin = 0.4
 
 
 def train() -> None:
@@ -117,11 +105,8 @@ def train() -> None:
     dataset = MOSDataModule(
         config=cfg,
         train_dataset_list=train_dataset_list,
-        train_contrastive_dataset_list=train_contrastive_list,
         val_dataset_list=val_dataset_list,
-        val_contrastive_dataset_list=val_contrastive_list,
         test_dataset_list=[],
-        test_contrastive_dataset_list=[],
     )
     cfg.data.train_dataset_num = len(dataset.train_dataset.dataset_list)
     model = MOSPredictorModule(cfg)

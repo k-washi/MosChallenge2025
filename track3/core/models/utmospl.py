@@ -11,7 +11,7 @@ from lightning.pytorch import LightningModule
 from transformers import get_cosine_schedule_with_warmup  # pyright: ignore[reportPrivateImportUsage]
 
 from track3.core.config import Config
-from track3.core.models.utils import get_model, ranknet_loss
+from track3.core.models.utils import get_model, mosdiff_loss, ranknet_loss
 
 OUTPUT_SQ_DIM = 2
 
@@ -66,7 +66,7 @@ class MOSPredictorModule(LightningModule):
 
         """
         # マージンありL1lossの計算
-        diff1 = torch.abs(pred1 - mos_score1).clamp(max=1.0)
+        diff1 = torch.abs(pred1 - mos_score1).clamp(max=2.0)
         l1loss = F.smooth_l1_loss(
             diff1, torch.zeros_like(diff1, device=pred1.device), reduction="mean", beta=self.c.loss.l1_loss_margin
         )
@@ -74,7 +74,9 @@ class MOSPredictorModule(LightningModule):
         # UTMOS
         # mosの情報がある場合id1 > id2はlossとして活用し id1 == id2の場合は無視する
         rank_loss = ranknet_loss(pred1, mos_score1, margin=self.c.loss.contrastive_loss_margin)
-        return l1loss, rank_loss
+
+        diff_loss = mosdiff_loss(pred1, mos_score1, margin=self.c.loss.contrastive_loss_margin)
+        return l1loss, rank_loss, diff_loss
 
     def training_step(self, batch: dict, batch_idx: int) -> torch.Tensor:
         """Training step for the model.
@@ -98,14 +100,16 @@ class MOSPredictorModule(LightningModule):
         ) = batch
         pred = self(wavs1, attention_mask=attention_mask1)
 
-        l1loss, rank_loss = self._caculate_loss(pred, mos_score1)
+        l1loss, rank_loss, diff_loss = self._caculate_loss(pred, mos_score1)
         l1_rate = self.c.loss.l1_rate_min + (self.c.loss.l1_rate_max - self.c.loss.l1_rate_min) * (
             self.global_step / self.total_train_steps
         )
-        loss = l1_rate * l1loss + self.c.loss.cl_rate * rank_loss
+        loss = l1_rate * l1loss + self.c.loss.cl_rate * rank_loss + self.c.loss.diff_rate * diff_loss
+        assert isinstance(loss, torch.Tensor), f"loss is not a tensor: {loss}"
 
         self.log("train/l1loss", l1loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("train/rank_loss", rank_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train/diff_loss", diff_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("train/loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
@@ -131,14 +135,15 @@ class MOSPredictorModule(LightningModule):
         wavs1, attention_mask1, mos_score1, wav_fp_list = batch
         pred = self(wavs1, attention_mask=attention_mask1)
 
-        l1loss, rank_loss = self._caculate_loss(pred, mos_score1)
+        l1loss, rank_loss, diff_loss = self._caculate_loss(pred, mos_score1)
         l1_rate = self.c.loss.l1_rate_min + (self.c.loss.l1_rate_max - self.c.loss.l1_rate_min) * (
             self.global_step / self.total_train_steps
         )
-        loss = l1_rate * l1loss + self.c.loss.cl_rate * rank_loss
+        loss = l1_rate * l1loss + self.c.loss.cl_rate * rank_loss + self.c.loss.diff_rate * diff_loss
 
         self.log("val/l1loss", l1loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("val/rank_loss", rank_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("val/diff_loss", diff_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log("val/loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
 
         pred = pred.detach().cpu()

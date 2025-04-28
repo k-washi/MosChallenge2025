@@ -68,14 +68,14 @@ class MOSPredictorModule(LightningModule):
         """
         # マージンありL1lossの計算
         mask = (mos_score1 >= self.c.data.label_norm_min).float()
-        diff1 = torch.abs(pred1 - mos_score1).clamp(max=1.0)
+        diff1 = torch.abs(pred1 - mos_score1).clamp(max=2.0)
         l1loss_1 = F.smooth_l1_loss(
             diff1, torch.zeros_like(diff1, device=pred1.device), reduction="none", beta=self.c.loss.l1_loss_margin
         )
         l1loss_1 = torch.sum(mask * l1loss_1) / (mask.sum() + 1e-6)
 
         mask = (mos_score2 >= self.c.data.label_norm_min).float()
-        diff2 = torch.abs(pred2 - mos_score2).clamp(max=1.0)
+        diff2 = torch.abs(pred2 - mos_score2).clamp(max=2.0)
         l1loss_2 = F.smooth_l1_loss(
             diff2, torch.zeros_like(diff2, device=pred2.device), reduction="none", beta=self.c.loss.l1_loss_margin
         )

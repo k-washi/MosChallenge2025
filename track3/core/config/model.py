@@ -10,6 +10,7 @@ class Wav2Vec2Config:
     lstm_layers: int = 3
     pretrained_model_name: str = "facebook/wav2vec2-base-960h"
     is_freeze_ssl: bool = False
+    lstm_hidden_dim: int = 256
 
 
 class ModelConfig:

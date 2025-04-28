@@ -43,7 +43,6 @@ class CheckpointEverySteps(pl.Callback):
     def __init__(self, save_dir: str, every_n_steps: int = 10000) -> None:
         """Checkpoint every n epochs."""
         self.save_dir = save_dir
-        self.epochs = 0
         self.every_n_steps = every_n_steps
 
     def on_train_batch_end(
@@ -52,9 +51,9 @@ class CheckpointEverySteps(pl.Callback):
         """Check if we should save a checkpoint after every train epoch."""
         _ = pl_module
         _, _, _ = outputs, batch, batch_idx
-        self.global_step = trainer.global_step * trainer.accumulate_grad_batches
-        if self.global_step % self.every_n_steps == 0 and self.global_step > 0:
-            save_dir = Path(f"{self.save_dir}") / f"ckpt-{self.global_step}"
+        global_step = trainer.global_step * trainer.accumulate_grad_batches
+        if global_step % self.every_n_steps == 0 and global_step > 0:
+            save_dir = Path(f"{self.save_dir}") / f"ckpt-{global_step}"
             save_dir.mkdir(exist_ok=True, parents=True)
             save_path = save_dir / "model.ckpt"
             if hasattr(trainer, "model"):

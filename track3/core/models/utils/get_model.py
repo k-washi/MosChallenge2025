@@ -46,6 +46,7 @@ def get_model(config: ModelConfig, model_name: str) -> torch.nn.Module:
             lstm_dropout=config.w2v2.lstm_dropout,
             pretrained_model_name=config.w2v2.pretrained_model_name,
             lstm_layrs=config.w2v2.lstm_layers,
+            lstm_hidden_dim=config.w2v2.lstm_hidden_dim,
         )
         if config.w2v2.is_freeze_ssl:
             model.freaze_ssl()

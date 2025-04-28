@@ -40,8 +40,24 @@ def ranknet_loss(scores: torch.Tensor, mos: torch.Tensor, sigma: float = 1.0, ma
     j_idx = j_idx.to(device)
     y = y.to(device=device, dtype=scores.dtype)
     # Compute logits (difference of scores scaled by sigma)
-    print(scores)
-    print(mos)
     logits = sigma * (scores[i_idx] - scores[j_idx])
     # Use BCEWithLogits for stability (applies sigmoid internally)
     return F.binary_cross_entropy_with_logits(logits, y)
+
+
+def mosdiff_loss(scores: torch.Tensor, mos: torch.Tensor, margin: float = 0.1) -> torch.Tensor:
+    """scores: predictor 出力 (B,).
+
+    mos: GT MOS (B,)
+    戻り値: scalar
+    """
+    diff_gt = mos.unsqueeze(1) - mos.unsqueeze(0)
+    diff_pred = scores.unsqueeze(1) - scores.unsqueeze(0)
+
+    loss_mat = (diff_gt - diff_pred).abs() - margin
+    loss_mat = torch.clamp(loss_mat, min=0)
+
+    # use each unordered pair only once (upper-triangular, i<j)
+    triu_mask = torch.triu(torch.ones_like(loss_mat, dtype=torch.bool), diagonal=1)
+    loss = loss_mat[triu_mask].mean()
+    return loss
