@@ -26,6 +26,7 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
+    "track1/core/modules/cnn14",
 ]
 
 # Same as Black.

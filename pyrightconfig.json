@@ -11,6 +11,7 @@
         "**/__pycache__",
         ".pytest_cache",
         ".ruff_cache",
-        ".venv"
+        ".venv",
+        "track1/core/modules/cnn14"
     ],
 }
