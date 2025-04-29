@@ -64,10 +64,6 @@ class MOSDataset(torch.utils.data.Dataset):
         audio_file1, mos_score1, dataset_name = self.dataset_list[idx]
         audio1, sr = load_wave(str(audio_file1), sample_rate=self.c.data.sample_rate, mono=True, is_torch=True)
         assert isinstance(audio1, torch.Tensor), f"Audio file {audio_file1} is not a torch tensor."
-
-        # normalize
-        audio1 = audio1 / (torch.max(torch.abs(audio1)).item() * self.c.data.normalize_scale)
-
         if self.is_transform:
             audio1 = self.aug(audio1, sr)
 
@@ -80,6 +76,10 @@ class MOSDataset(torch.utils.data.Dataset):
         mos_score1 = (mos_score1 - (self.c.data.label_min + self.c.data.label_max) / 2.0) / (
             self.c.data.label_norm_max - self.c.data.label_norm_min
         )
+
+        # normalize
+        # a audio1 = audio1 / (torch.max(torch.abs(audio1)).item() * self.c.data.normalize_scale)
+        audio1 = (audio1 - audio1.mean()) / torch.sqrt(torch.var(audio1) + 1e-7)
         return audio1, mos_score1, str(audio_file1)
 
     def aug(self, x: torch.Tensor, sr: int) -> torch.Tensor:
@@ -129,8 +129,8 @@ class MOSDataset(torch.utils.data.Dataset):
 
         max_len = max([wav.shape[-1] for wav in wavs1])
 
-        wave1_tensor = torch.zeros((len(wavs1), max_len))
-        attention_mask1 = torch.zeros((len(wavs1), max_len))
+        wave1_tensor = torch.zeros((len(wavs1), max_len), dtype=torch.float32)
+        attention_mask1 = torch.zeros((len(wavs1), max_len), dtype=torch.long)
         score_tensor1 = torch.tensor(scores1, dtype=torch.float32)
 
         for i, wav in enumerate(wavs1):

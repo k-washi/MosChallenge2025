@@ -16,7 +16,7 @@ from track3.core.config import Config
 from track3.core.dataset.contrastive.utils import get_labeldata_list
 from track3.core.dataset.utmos.mospl import MOSDataModule
 from track3.core.models.utmospl_sf import MOSPredictorModule
-from track3.exp.utils import CheckpointEveryEpoch
+from track3.exp.utils import CheckpointEverySteps
 
 cfg = Config()
 seed_everything(cfg.ml.seed)
@@ -24,10 +24,10 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "01311"
+VERSION = "01312"
 EXP_ID = "utmos_sslw2v2_sf_bilstmattention"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
-IS_LOGGING = True
+IS_LOGGING = False
 FAST_DEV_RUN = False
 
 LOG_SAVE_DIR = f"logs/{EXP_ID}/v{VERSION}"
@@ -61,19 +61,17 @@ _, val_dataset_list = get_labeldata_list(
 print(f"val_len: {len(val_dataset_list)}")
 
 cfg.ml.num_epochs = 20
-cfg.ml.batch_size = 20
-cfg.ml.test_batch_size = 20
+cfg.ml.batch_size = 44
+cfg.ml.test_batch_size = 44
 cfg.ml.num_workers = 4
 cfg.ml.accumulate_grad_num = 1
 cfg.ml.grad_clip_val = 1.0
-cfg.ml.check_val_every_n_epoch = 1
+cfg.ml.check_val_every_n_steps = 200
 cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
 cfg.ml.optimizer.ssl_lr = 2e-5
 cfg.ml.optimizer.head_lr = 1e-4
-cfg.ml.optimizer.weight_decay = 0.01
-cfg.ml.optimizer.adam_epsilon = 1e-8
 cfg.ml.optimizer.warmup_epoch = 2  # 全エポックの1割くらい
 cfg.ml.optimizer.num_cycles = 0.5
 
@@ -89,7 +87,7 @@ cfg.model.w2v2.lstm_hidden_dim = 256
 cfg.model.w2v2.is_freeze_ssl = False
 
 # dataset
-cfg.data.max_duration = 10
+cfg.data.max_duration = 5
 cfg.data.pitch_shift_max = 150
 cfg.data.time_wrap_max = 1.05
 cfg.data.time_wrap_min = 0.95
@@ -120,9 +118,9 @@ def train() -> None:
             project=WANDB_PROJECT_NAME,
             name=f"{EXP_ID}/v{VERSION}",
         )
-    ckpt_callback = CheckpointEveryEpoch(
+    ckpt_callback = CheckpointEverySteps(
         save_dir=cfg.path.model_save_dir,
-        every_n_epochs=cfg.ml.check_val_every_n_epoch,
+        every_n_steps=cfg.ml.check_val_every_n_steps,
     )
     callback_list = [
         ckpt_callback,
@@ -140,7 +138,8 @@ def train() -> None:
         accumulate_grad_batches=cfg.ml.accumulate_grad_num,
         fast_dev_run=FAST_DEV_RUN,
         gradient_clip_val=cfg.ml.grad_clip_val,
-        check_val_every_n_epoch=cfg.ml.check_val_every_n_epoch,
+        val_check_interval=cfg.ml.check_val_every_n_steps,
+        check_val_every_n_epoch=None,
         logger=logger,
         callbacks=callback_list,
         num_sanity_val_steps=2,

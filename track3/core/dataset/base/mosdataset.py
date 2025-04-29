@@ -69,9 +69,6 @@ class MOSDataset(torch.utils.data.Dataset):
         audio, sr = load_wave(str(audio_file), sample_rate=self.c.data.sample_rate, mono=True, is_torch=True)
         assert isinstance(audio, torch.Tensor), f"Audio file {audio_file} is not a torch tensor."
 
-        # normalize
-        audio = audio / (torch.max(torch.abs(audio)).item() * self.c.data.normalize_scale)
-
         if self.is_transform:
             audio = self.aug(audio, sr)
 
@@ -84,6 +81,8 @@ class MOSDataset(torch.utils.data.Dataset):
         mos_score = (mos_score - (self.c.data.label_min + self.c.data.label_max) / 2.0) / (
             self.c.data.label_norm_max - self.c.data.label_norm_min
         )
+
+        audio = (audio - audio.mean()) / torch.sqrt(audio.var() + 1e-7)
         return audio, mos_score, user_id, str(audio_file)
 
     def aug(self, x: torch.Tensor, sr: int) -> torch.Tensor:

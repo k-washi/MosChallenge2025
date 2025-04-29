@@ -11,7 +11,7 @@ from lightning.pytorch.loggers import WandbLogger
 from track3.core.config import Config
 from track3.core.dataset.contrastive.mospl import MOSDataModule
 from track3.core.dataset.contrastive.utils import get_labeldata_list, get_nolabel_list
-from track3.core.models.sslclpl import MOSPredictorModule
+from track3.core.models.sslclpl_sf import MOSPredictorModule
 from track3.exp.utils import CheckpointEverySteps
 
 cfg = Config()
@@ -20,7 +20,7 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "01502"
+VERSION = "01503"
 EXP_ID = "cl_sslw2v2_bilstmattention"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -49,8 +49,8 @@ print(f"train_len: {len(train_dataset_list)}")
 print(f"train_contrastive_len: {len(train_contrastive_list)}")
 
 VAL_LIST = [
-    # "/data/mosranking/bvccmain/val.csv",
-    # "/data/mosranking/somos/val.csv",
+    "/data/mosranking/bvccmain/val.csv",
+    "/data/mosranking/somos/val.csv",
     "/data/mosranking/track3/fold_0.csv",
     "/data/mosranking/track3/fold_1.csv",
     "/data/mosranking/track3/fold_2.csv",
@@ -65,51 +65,47 @@ val_contrastive_list, val_dataset_list = get_labeldata_list(
 print(f"val_len: {len(val_dataset_list)}")
 print(f"val_contrastive_len: {len(val_contrastive_list)}")
 
-cfg.ml.num_epochs = 1
-cfg.ml.batch_size = 10
-cfg.ml.test_batch_size = 10
+cfg.ml.num_epochs = 2
+cfg.ml.batch_size = 24
+cfg.ml.test_batch_size = 24
 cfg.ml.num_workers = 4
-cfg.ml.accumulate_grad_num = 3
+cfg.ml.accumulate_grad_num = 1
 cfg.ml.grad_clip_val = 1.0
-cfg.ml.check_val_every_n_steps = 500
+cfg.ml.check_val_every_n_steps = 5000
 cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
-cfg.ml.optimizer.ssl_lr = 8e-6
-cfg.ml.optimizer.head_lr = 5e-5
+cfg.ml.optimizer.ssl_lr = 2e-5
+cfg.ml.optimizer.head_lr = 1e-4
 cfg.ml.optimizer.weight_decay = 0.01
-cfg.ml.optimizer.adam_epsilon = 1e-8
-cfg.ml.optimizer.warmup_epoch = 0.05  # 全エポックの1割くらい
-cfg.ml.optimizer.num_cycles = 0.5
+cfg.ml.optimizer.num_cycles = 0.1
 
 cfg.path.model_save_dir = f"{LOG_SAVE_DIR}/ckpt"
 cfg.path.val_save_dir = f"{LOG_SAVE_DIR}/val"
 
 # model
 cfg.model.model_name = "wav2vec2_bilstmattention"
-cfg.model.w2v2.pretrained_model_name = "facebook/wav2vec2-base-960h"
-cfg.model.w2v2.dropout = 0.2
+cfg.model.w2v2.dropout = 0.3
 cfg.model.w2v2.lstm_layers = 3
-cfg.model.w2v2.lstm_dropout = 0.05  # lstmのドロップアウトは小さくする
+cfg.model.w2v2.lstm_dropout = 0.1  # lstmのドロップアウトは小さくする
 cfg.model.w2v2.lstm_hidden_dim = 256
 cfg.model.w2v2.is_freeze_ssl = False
 
 # dataset
-cfg.data.max_duration = 10
+cfg.data.max_duration = 5
 cfg.data.pitch_shift_max = 150
 cfg.data.time_wrap_max = 1.05
 cfg.data.time_wrap_min = 0.95
-cfg.data.is_label_normalize = True
 cfg.data.is_extend = True
 cfg.data.extend_rate = 0.5
 
 # loss
-cfg.loss.l1_rate_min = 0.5
-cfg.loss.l1_rate_max = 2
+cfg.loss.l1_rate_min = 0.2
+cfg.loss.l1_rate_max = 1
 cfg.loss.cl_rate = 0.5
-cfg.loss.rank_rate = 10
-cfg.loss.l1_loss_margin = 0.05
-cfg.loss.contrastive_loss_margin = 1
+cfg.loss.rank_rate = 1
+cfg.loss.l1_loss_margin = 0.1
+cfg.loss.contrastive_loss_margin = 0.1
 
 
 def train() -> None:

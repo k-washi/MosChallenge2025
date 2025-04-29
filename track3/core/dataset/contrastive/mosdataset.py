@@ -106,8 +106,6 @@ class MOSDataset(torch.utils.data.Dataset):
         assert isinstance(audio2, torch.Tensor), f"Audio file {audio_file2} is not a torch tensor."
 
         # normalize
-        audio1 = audio1 / (torch.max(torch.abs(audio1)).item() * self.c.data.normalize_scale)
-        audio2 = audio2 / (torch.max(torch.abs(audio2)).item() * self.c.data.normalize_scale)
 
         if self.is_transform:
             audio1 = self.aug(audio1, sr)
@@ -131,6 +129,10 @@ class MOSDataset(torch.utils.data.Dataset):
         mos_score2 = (mos_score2 - (self.c.data.label_min + self.c.data.label_max) / 2.0) / (
             self.c.data.label_norm_max - self.c.data.label_norm_min
         )
+
+        audio1 = (audio1 - audio1.mean()) / torch.sqrt(torch.var(audio1) + 1e-7)
+        audio2 = (audio2 - audio2.mean()) / torch.sqrt(torch.var(audio2) + 1e-7)
+
         return audio1, mos_score1, str(audio_file1), audio2, mos_score2, str(audio_file2)
 
     def aug(self, x: torch.Tensor, sr: int) -> torch.Tensor:
