@@ -1,10 +1,10 @@
 "modules."
 
-from track1.core.config.dataset import DatasetConfig
-from track1.core.config.loss import LossConfig
-from track1.core.config.ml import MLConfig
-from track1.core.config.model import ModelConfig
-from track1.core.config.path import PathConfig
+from track3.core.config.dataset import DatasetConfig
+from track3.core.config.loss import LossConfig
+from track3.core.config.ml import MLConfig
+from track3.core.config.model import ModelConfig
+from track3.core.config.path import PathConfig
 
 
 class Config:

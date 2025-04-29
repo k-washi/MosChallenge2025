@@ -28,3 +28,7 @@ Aux featureの作成
 ```bash
 wget https://zenodo.org/record/3987831/files/Cnn14_16k_mAP%3D0.438.pth -P ./pretrained/
 ```
+
+```bash
+python ./track1/core/dataset/create_features.py --dataset_dir data/MusicEval-phase1 --output_dir data/MusicEval-phase1/feat
+```

@@ -75,8 +75,10 @@ class ExtractAuxFeatures:
         meter = pyln.Meter(TARGET_SR)  # EBU-R128
         loudness = meter.integrated_loudness(wav_np)
         rms = np.sqrt(np.mean(wav_np**2))
-        dr = np.percentile(np.abs(wav_np), 95) / np.percentile(np.abs(wav_np), 5)  # Dynamic-Range proxy
-
+        try:
+            dr = np.percentile(np.abs(wav_np), 95) / np.percentile(np.abs(wav_np), 5)  # Dynamic-Range proxy
+        except ZeroDivisionError:
+            dr = 0.0
         # 3) 時間周波数特徴（統計量は μ, σ の 2-値）
         s = np.abs(librosa.stft(wav_np, n_fft=2048, hop_length=1024))
         mel = librosa.feature.melspectrogram(S=s, sr=TARGET_SR, n_mels=96, fmax=TARGET_SR // 2)

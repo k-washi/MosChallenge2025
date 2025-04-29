@@ -1,4 +1,11 @@
-MODEL_LIST = ["wav2vec2_linear", "wav2vec2_bilstmattn", "wav2vec2_bilstmattention"]
+MODEL_LIST = [
+    "wav2vec2_linear",
+    "wav2vec2_bilstmattn",
+    "wav2vec2_bilstmattention",
+    "wavlm_bilstmattention",
+    "hubert_bilstmattention",
+    "contentvec_bilstmattention",
+]
 
 
 class Wav2Vec2Config:
@@ -20,3 +27,6 @@ class ModelConfig:
     model_list: list = MODEL_LIST
 
     w2v2: Wav2Vec2Config = Wav2Vec2Config()
+    wavlm_pretrained_model_name: str = "microsoft/wavlm-base-plus"
+    hubert_pretrained_model_name: str = "facebook/hubert-base-ls960"
+    contentvector_pretrained_model_name: str = "lengyue233/content-vec-best"
