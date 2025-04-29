@@ -16,7 +16,7 @@ from track3.core.config import Config
 from track3.core.dataset.contrastive.utils import get_labeldata_list
 from track3.core.dataset.utmos.mospl import MOSDataModule
 from track3.core.models.utmospl_sf import MOSPredictorModule
-from track3.exp.utils import CheckpointEverySteps
+from track3.exp.utils import CheckpointEveryEpoch
 
 cfg = Config()
 seed_everything(cfg.ml.seed)
@@ -60,13 +60,13 @@ _, val_dataset_list = get_labeldata_list(
 
 print(f"val_len: {len(val_dataset_list)}")
 
-cfg.ml.num_epochs = 10
+cfg.ml.num_epochs = 20
 cfg.ml.batch_size = 20
 cfg.ml.test_batch_size = 20
 cfg.ml.num_workers = 4
 cfg.ml.accumulate_grad_num = 1
 cfg.ml.grad_clip_val = 1.0
-cfg.ml.check_val_every_n_steps = 500
+cfg.ml.check_val_every_n_epoch = 1
 cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
@@ -120,9 +120,9 @@ def train() -> None:
             project=WANDB_PROJECT_NAME,
             name=f"{EXP_ID}/v{VERSION}",
         )
-    ckpt_callback = CheckpointEverySteps(
+    ckpt_callback = CheckpointEveryEpoch(
         save_dir=cfg.path.model_save_dir,
-        every_n_steps=cfg.ml.check_val_every_n_steps,
+        every_n_epochs=cfg.ml.check_val_every_n_epoch,
     )
     callback_list = [
         ckpt_callback,
@@ -140,8 +140,7 @@ def train() -> None:
         accumulate_grad_batches=cfg.ml.accumulate_grad_num,
         fast_dev_run=FAST_DEV_RUN,
         gradient_clip_val=cfg.ml.grad_clip_val,
-        val_check_interval=cfg.ml.check_val_every_n_steps,
-        check_val_every_n_epoch=None,
+        check_val_every_n_epoch=cfg.ml.check_val_every_n_epoch,
         logger=logger,
         callbacks=callback_list,
         num_sanity_val_steps=2,
