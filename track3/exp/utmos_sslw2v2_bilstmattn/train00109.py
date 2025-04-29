@@ -15,7 +15,7 @@ from lightning.pytorch.loggers import WandbLogger
 from track3.core.config import Config
 from track3.core.dataset.contrastive.utils import get_labeldata_list
 from track3.core.dataset.utmos.mospl import MOSDataModule
-from track3.core.models.utmospl import MOSPredictorModule
+from track3.core.models.utmospl_sf import MOSPredictorModule
 from track3.exp.utils import CheckpointEverySteps
 
 cfg = Config()
@@ -24,8 +24,8 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "01310"
-EXP_ID = "utmos_sslcontentvec_bilstmattention"
+VERSION = "01311"
+EXP_ID = "utmos_sslw2v2_sf_bilstmattention"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
 FAST_DEV_RUN = False
@@ -81,7 +81,7 @@ cfg.path.model_save_dir = f"{LOG_SAVE_DIR}/ckpt"
 cfg.path.val_save_dir = f"{LOG_SAVE_DIR}/val"
 
 # model
-cfg.model.model_name = "contentvec_bilstmattention"
+cfg.model.model_name = "wav2vec2_bilstmattention"
 cfg.model.w2v2.dropout = 0.3
 cfg.model.w2v2.lstm_layers = 3
 cfg.model.w2v2.lstm_dropout = 0.1  # lstmのドロップアウトは小さくする

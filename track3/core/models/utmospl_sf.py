@@ -240,15 +240,3 @@ class MOSPredictorModule(LightningModule):
             [*ssl_grouped_parameters, *head_optimizer_grouped_parameters],
         )
         return [optimizer], []
-
-    def lr_scheduler_step(self, scheduler: Any, metric: Any) -> None:
-        """Step the learning rate scheduler.
-
-        Args:
-        ----
-            scheduler (torch.optim.lr_scheduler._LRScheduler): Learning rate scheduler.
-            metric (str): Metric to monitor.
-
-        """
-        _ = metric
-        scheduler.step()
