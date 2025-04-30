@@ -88,9 +88,9 @@ cfg.model.w2v2.is_freeze_ssl = False
 
 # dataset
 cfg.data.max_duration = 5
-cfg.data.pitch_shift_max = 150
-cfg.data.time_wrap_max = 1.05
-cfg.data.time_wrap_min = 0.95
+cfg.data.pitch_shift_max = 300
+cfg.data.time_wrap_max = 1.1
+cfg.data.time_wrap_min = 0.9
 cfg.data.is_label_normalize = True
 
 # loss

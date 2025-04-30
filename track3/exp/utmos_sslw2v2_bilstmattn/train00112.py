@@ -24,7 +24,7 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "01312"
+VERSION = "0133"
 EXP_ID = "utmos_sslw2v2_sf_bilstmattention"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -70,8 +70,8 @@ cfg.ml.check_val_every_n_steps = 200
 cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
-cfg.ml.optimizer.ssl_lr = 2e-5
-cfg.ml.optimizer.head_lr = 1e-4
+cfg.ml.optimizer.ssl_lr = 5e-5
+cfg.ml.optimizer.head_lr = 2e-4
 cfg.ml.optimizer.warmup_epoch = 2  # 全エポックの1割くらい
 cfg.ml.optimizer.num_cycles = 0.5
 
@@ -88,9 +88,9 @@ cfg.model.w2v2.is_freeze_ssl = False
 
 # dataset
 cfg.data.max_duration = 5
-cfg.data.pitch_shift_max = 150
-cfg.data.time_wrap_max = 1.05
-cfg.data.time_wrap_min = 0.95
+cfg.data.pitch_shift_max = 300
+cfg.data.time_wrap_max = 1.1
+cfg.data.time_wrap_min = 0.9
 cfg.data.is_label_normalize = True
 
 # loss
