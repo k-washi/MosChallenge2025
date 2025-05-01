@@ -1,3 +1,6 @@
+DEFAULT_DATASET_MAP = {"track3": 0, "bvccmain": 1, "somos": 2}
+
+
 class DatasetConfig:
     """Configuration class for the dataset."""
 
@@ -22,3 +25,6 @@ class DatasetConfig:
     # contrastiveのデータに対してmosスコアが付いているデータが少ないので拡張する
     is_extend: bool = False
     extend_rate: float = 0.1  # mosがついているデータをextendする割合
+
+    train_dataset_dict: dict[str, int] = DEFAULT_DATASET_MAP
+    test_dataset_dict: dict[str, int] = DEFAULT_DATASET_MAP

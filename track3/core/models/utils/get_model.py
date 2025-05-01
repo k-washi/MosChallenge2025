@@ -86,6 +86,20 @@ def get_model(config: ModelConfig, model_name: str) -> torch.nn.Module:
         )
         if config.w2v2.is_freeze_ssl:
             model.freaze_ssl()
+    elif model_name == "wavlm_bilstmattention_ds":
+        from track3.core.models.ssl.wavlm_bilstmattention_ds import MOSPredictorWavLM
+
+        model = MOSPredictorWavLM(
+            dropout=config.w2v2.dropout,
+            lstm_dropout=config.w2v2.lstm_dropout,
+            lstm_layrs=config.w2v2.lstm_layers,
+            lstm_hidden_dim=config.w2v2.lstm_hidden_dim,
+            ds_hidden_dim=config.w2v2.ds_hidden_dim,
+            ds_num=config.w2v2.ds_num,
+            pretrained_model_name=config.wavlm_pretrained_model_name,
+        )
+        if config.w2v2.is_freeze_ssl:
+            model.freaze_ssl()
     else:
         emsg = f"Model {model_name} not found."
         raise ValueError(emsg)

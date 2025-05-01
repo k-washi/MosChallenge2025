@@ -3,6 +3,7 @@ MODEL_LIST = [
     "wav2vec2_bilstmattn",
     "wav2vec2_bilstmattention",
     "wavlm_bilstmattention",
+    "wavlm_bilstmattention_ds",
     "hubert_bilstmattention",
     "contentvec_bilstmattention",
 ]
@@ -18,6 +19,10 @@ class Wav2Vec2Config:
     pretrained_model_name: str = "facebook/wav2vec2-base-960h"
     is_freeze_ssl: bool = False
     lstm_hidden_dim: int = 256
+
+    # ds
+    ds_num = 3
+    ds_hidden_dim = 32
 
 
 class ModelConfig:

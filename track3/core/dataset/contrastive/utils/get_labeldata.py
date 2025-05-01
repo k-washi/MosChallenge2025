@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 
 import pandas as pd
@@ -20,6 +21,7 @@ SCORE_SET_DIR = ["199"]
 
 def get_labeldata_list(
     dataset_csv_list: list[str],
+    is_balanced: bool = False,
 ) -> tuple[
     list[tuple[tuple[str | Path, float], tuple[str | Path, float]]],
     list[tuple[str | Path, float, str]],
@@ -29,6 +31,7 @@ def get_labeldata_list(
     Args:
     ----
         dataset_csv_list (list[str]): List of dataset CSV files.
+        is_balanced (bool): Whether to balance the dataset or not.
 
     Returns:
     -------
@@ -37,7 +40,9 @@ def get_labeldata_list(
 
     """
     output_list = []
+    score_output_dict = {}
     score_output_list = []
+    rng = random.Random(42)  # noqa: S311
 
     for csv_fp in dataset_csv_list:
         data_df = pd.read_csv(csv_fp)
@@ -75,7 +80,8 @@ def get_labeldata_list(
                 output_list.append(((beter_fn, better_score), (worse_fn, worse_score)))
 
         # MOSによるデータの処理
-
+        if dataset_name not in score_output_dict:
+            score_output_dict[dataset_name] = []
         for audio_dir in SCORE_SET_DIR:
             for audio_fn, score in tqdm(zip(tmp_audio_list, tmp_score_list, strict=False), desc=f"Processing {csv_fp}"):
                 data_fn = dataset_dir / audio_dir / f"{Path(audio_fn).stem}.flac"
@@ -85,9 +91,19 @@ def get_labeldata_list(
                         print(f"Data1 file {data_fn} does not exist.")
                         continue
 
-                score_output_list.append((data_fn, score, dataset_name))
-
+                score_output_dict[dataset_name].append((data_fn, score, dataset_name))
         print(f"{csv_fp}: {len(output_list)}")
+    max_num = 0
+    for data_list in score_output_dict.values():
+        if len(data_list) > max_num:
+            max_num = len(data_list)
+    for data_list in score_output_dict.values():
+        if is_balanced and len(data_list) < max_num:
+            sample_data_list = rng.choices(data_list, k=int(max_num - len(data_list)))
+            data_list.extend(sample_data_list)
+            print(f" {len(data_list)} add {len(sample_data_list)}")
+        score_output_list.extend(data_list)
+
     return output_list, score_output_list
 
 
@@ -97,7 +113,7 @@ if __name__ == "__main__":
         "/data/mosranking/bvccmain/train.csv",
         "/data/mosranking/track3/fold_0.csv",
     ]
-    output_list, score_output_list = get_labeldata_list(dataset_list)
+    output_list, score_output_list = get_labeldata_list(dataset_list, is_balanced=True)
     print(f"len(output_list): {len(output_list)}")
     for data in output_list[-10:]:
         print(data)
