@@ -9,6 +9,7 @@ from track1.core.modules.clap import ClapEmbedding
 
 WAV_DIR = "wav"
 PROMPT_INFO_TXT = "prompt_info.txt"
+DEMO_PROMPT_INFO_TEXT = "demo_prompt_info.txt"
 
 PROMPT_OUTDIR = "prompt"
 AUDIOEMB_OUTDIR = "audio"
@@ -43,6 +44,7 @@ def create_features(
 
     audio16k_dir = Path(dataset_dir) / WAV_DIR
     prompt_text_fp = Path(dataset_dir) / PROMPT_INFO_TXT
+    demo_prompt_text_fp = Path(dataset_dir) / DEMO_PROMPT_INFO_TEXT
 
     device = torch.device("cpu")
     clap = ClapEmbedding(device=device, pretrained_model_name=clap_model)
@@ -51,22 +53,39 @@ def create_features(
     )
 
     prompt_df = pd.read_csv(prompt_text_fp, sep="\t", header=None).dropna()
+    demo_prompt_df = pd.read_csv(demo_prompt_text_fp, sep="\t", header=None).dropna()
+    demo_prompt_dict = {row[0]: row[1] for row in demo_prompt_df.to_numpy()}
     prompt_dict = {row[0]: row[1] for row in prompt_df.to_numpy() if row[0].startswith("P")}
-    for lis_audio_name, prompt in tqdm(prompt_dict.items()):
-        text_embedding = clap.embedding_text(prompt)
-        output_pt_fp = prompt_outdir / f"{lis_audio_name}.pt"
-        torch.save(text_embedding, output_pt_fp)
 
     for audio_fp in tqdm(list(audio16k_dir.glob("*"))):
-        audio_embedding = clap.embedding_audio(str(audio_fp))
         output_pt_fp = audio_outdir / f"{audio_fp.stem}.pt"
-        torch.save(audio_embedding, output_pt_fp)
+        if not output_pt_fp.exists():
+            audio_embedding = clap.embedding_audio(str(audio_fp))
+            torch.save(audio_embedding, output_pt_fp)
 
-        aux_emebedding = auxfeat_extractor.extract_aux_features(
-            str(audio_fp),
-        )
         output_pt_fp = auxout_dir / f"{audio_fp.stem}.pt"
-        torch.save(aux_emebedding, output_pt_fp)
+        if not output_pt_fp.exists():
+            aux_emebedding = auxfeat_extractor.extract_aux_features(
+                str(audio_fp),
+            )
+            torch.save(aux_emebedding, output_pt_fp)
+
+        # prompt:
+        output_pt_fp = prompt_outdir / f"{audio_fp.stem}.pt"
+        if output_pt_fp.exists():
+            print(f"Prompt: {audio_fp.stem} already exists.")
+            continue
+        if audio_fp.name in demo_prompt_dict:
+            prompt = demo_prompt_dict[audio_fp.name]
+            text_embedding = clap.embedding_text(prompt)
+            torch.save(text_embedding, output_pt_fp)
+        elif audio_fp.stem.split("_")[-1] in prompt_dict:
+            prompt = prompt_dict[audio_fp.stem.split("_")[-1]]
+            text_embedding = clap.embedding_text(prompt)
+            torch.save(text_embedding, output_pt_fp)
+        else:
+            emsg = f"Audio file {audio_fp.name} not found in prompt dictionary."
+            raise ValueError(emsg)
 
 
 if __name__ == "__main__":
