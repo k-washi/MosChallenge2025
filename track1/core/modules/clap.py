@@ -32,10 +32,24 @@ class ClapEmbedding:
         # Load the audio file
         wav, _ = load_wave(wav_path, sample_rate=CLAP_SR, mono=True, is_torch=True)
         assert isinstance(wav, torch.Tensor), f"Audio file {wav_path} is not a torch tensor."
-        wav = wav / (wav.abs().max() * 1.0001)  # Normalize
+        return self.embedding_audio_from_tensor(wav)
+
+    def embedding_audio_from_tensor(self, wav: torch.Tensor) -> torch.Tensor:
+        """Extract audio features using CLAP from a tensor.
+
+        Args:
+        ----
+            wav (torch.Tensor): Audio tensor.
+
+        Returns:
+        -------
+            torch.Tensor: Extracted audio features. [512]
+
+        """
+        assert isinstance(wav, torch.Tensor), "Input must be a torch tensor."
+        wav = wav / (wav.abs().max() * 1.0001)
         # Preprocess the audio
         inputs = self.processor(audios=wav, sampling_rate=CLAP_SR, return_tensors="pt", padding=True).to(self.device)  # pyright: ignore[reportCallIssue]
-
         # Extract features
         with torch.no_grad():
             out = self.model.get_audio_features(**inputs)  # pyright: ignore[reportArgumentType]
