@@ -23,7 +23,7 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "02100"
+VERSION = "02101"
 EXP_ID = "utmos_sslwavlml_sfds_bilstmattention"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -61,9 +61,9 @@ cfg.ml.num_epochs = 40
 cfg.ml.batch_size = 20
 cfg.ml.test_batch_size = 20
 cfg.ml.num_workers = 4
-cfg.ml.accumulate_grad_num = 1
+cfg.ml.accumulate_grad_num = 2
 cfg.ml.grad_clip_val = 1.0
-cfg.ml.check_val_every_n_steps = 200
+cfg.ml.check_val_every_n_steps = 1000
 cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"
@@ -98,7 +98,7 @@ cfg.data.is_label_normalize = True
 
 # loss
 cfg.loss.l1_rate_min = 0.5
-cfg.loss.l1_rate_max = 0.5
+cfg.loss.l1_rate_max = 1
 cfg.loss.cl_rate = 0.5  # 順序にはこっちがきく
 cfg.loss.diff_rate = 0.5  # l1が安定
 cfg.loss.l1_loss_margin = 0.1
