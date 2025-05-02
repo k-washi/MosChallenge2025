@@ -15,6 +15,8 @@ CNN14_FMIN = 50
 CNN14_FMAX = 8000
 CNN14_CLASS_NUM = 527
 
+CPU_DEVICE = torch.device("cpu")
+
 
 class AudioTagCNN1C4(torch.nn.Module):
     """Extract auxiliary features from audio using CLAP and PANNs (CNN14)."""
@@ -52,9 +54,12 @@ class ExtractAuxFeatures:
     def __init__(
         self,
         cnn14_ckpt: str = "pretrained/Cnn14_16k_mAP=0.438.pth",
+        device: torch.device = CPU_DEVICE,
     ) -> None:
         """Initialize the feature extractor."""
         self.tag_model = AudioTagCNN1C4(ckpt_fp=cnn14_ckpt)
+        self.device = device
+        self.tag_model.to(device)
 
     def extract_aux_features(
         self,
@@ -68,9 +73,20 @@ class ExtractAuxFeatures:
         # 1) ロード & Mono 化
         wav_pt, _ = load_wave(audio_fp, sample_rate=TARGET_SR, mono=True, is_torch=True)
         assert isinstance(wav_pt, torch.Tensor), f"Audio file {audio_fp} is not a torch tensor."
-        wav_pt = wav_pt / (wav_pt.abs().max() * 1.0001)  # Normalize
+        return self.extract_aux_features_from_tensor(wav_pt)
 
-        wav_np = wav_pt.numpy().astype(np.float32)
+    def extract_aux_features_from_tensor(
+        self,
+        wav_pt: torch.Tensor,
+    ) -> torch.Tensor:
+        """Extract auxiliary features from audio tensor."""
+        assert isinstance(wav_pt, torch.Tensor), "Audio file is not a torch tensor."
+        # 6) PANNs タグ確率
+        with torch.no_grad():
+            tag_logits = self.tag_model(wav_pt.unsqueeze(0))  # (1, 527)
+        tag_probs = torch.sigmoid(tag_logits).squeeze(0).cpu().numpy()
+
+        wav_np = wav_pt.cpu().numpy().astype(np.float32)
         # 2) Loudness / RMS / Dynamic Range
         meter = pyln.Meter(TARGET_SR)  # EBU-R128
         loudness = meter.integrated_loudness(wav_np)
@@ -113,11 +129,6 @@ class ExtractAuxFeatures:
         chroma = librosa.feature.chroma_stft(y=wav_np, sr=TARGET_SR)
         key_pc = int(np.argmax(np.mean(chroma, axis=1)))  # 0-11
         key_vec = np.eye(12)[key_pc]  # one-hot 12
-
-        # 6) PANNs タグ確率
-        with torch.no_grad():
-            tag_logits = self.tag_model(wav_pt.unsqueeze(0))  # (1, 527)
-        tag_probs = torch.sigmoid(tag_logits).squeeze(0).numpy()
 
         # 7) メタ
         duration = len(wav_np) / TARGET_SR
