@@ -23,7 +23,7 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "02000"
+VERSION = "0204"
 EXP_ID = "utmos_sslwavlm_sfds_bilstmattention"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -39,8 +39,8 @@ TRAIN_LIST = [
     "/data/mosranking/somos/train.csv",
     "/data/mosranking/track3/fold_0.csv",
     "/data/mosranking/track3/fold_1.csv",
-    "/data/mosranking/track3/fold_2.csv",
     "/data/mosranking/track3/fold_3.csv",
+    "/data/mosranking/track3/fold_4.csv",
 ]
 _, train_dataset_list = get_labeldata_list(dataset_csv_list=TRAIN_LIST, is_balanced=True)
 print(f"train_len: {len(train_dataset_list)}")
@@ -48,7 +48,7 @@ print(f"train_len: {len(train_dataset_list)}")
 VAL_LIST = [
     "/data/mosranking/bvccmain/val.csv",
     "/data/mosranking/somos/val.csv",
-    "/data/mosranking/track3/fold_4.csv",
+    "/data/mosranking/track3/fold_2.csv",
 ]
 
 _, val_dataset_list = get_labeldata_list(
@@ -81,7 +81,7 @@ cfg.model.w2v2.dropout = 0.3
 cfg.model.w2v2.lstm_layers = 3
 cfg.model.w2v2.lstm_dropout = 0.1  # lstmのドロップアウトは小さくする
 cfg.model.w2v2.lstm_hidden_dim = 256
-cfg.model.w2v2.is_freeze_ssl = False
+cfg.model.w2v2.is_freeze_ssl = True
 cfg.model.w2v2.ds_hidden_dim = 32
 
 cfg.model.w2v2.ds_num = 3

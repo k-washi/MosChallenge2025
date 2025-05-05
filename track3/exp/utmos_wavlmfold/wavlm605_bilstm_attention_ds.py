@@ -1,6 +1,7 @@
 """Wav2vec2 linear training script.
 
 track3を訓練に追加し,fold likeにする
+val:4,test:5
 """
 
 import shutil
@@ -23,8 +24,8 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "02000"
-EXP_ID = "utmos_sslwavlm_sfds_bilstmattention"
+VERSION = "03005"
+EXP_ID = "utmos_sslwavlm_sfds_fold"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
 FAST_DEV_RUN = False
@@ -41,6 +42,10 @@ TRAIN_LIST = [
     "/data/mosranking/track3/fold_1.csv",
     "/data/mosranking/track3/fold_2.csv",
     "/data/mosranking/track3/fold_3.csv",
+    "/data/mosranking/track3/fold_6.csv",
+    "/data/mosranking/track3/fold_7.csv",
+    "/data/mosranking/track3/fold_8.csv",
+    "/data/mosranking/track3/fold_9.csv",
 ]
 _, train_dataset_list = get_labeldata_list(dataset_csv_list=TRAIN_LIST, is_balanced=True)
 print(f"train_len: {len(train_dataset_list)}")
@@ -63,7 +68,7 @@ cfg.ml.test_batch_size = 44
 cfg.ml.num_workers = 4
 cfg.ml.accumulate_grad_num = 1
 cfg.ml.grad_clip_val = 1.0
-cfg.ml.check_val_every_n_steps = 200
+cfg.ml.check_val_every_n_steps = 150
 cfg.ml.mix_precision = "32"
 
 cfg.ml.optimizer.optimizer_name = "adamw"

@@ -23,7 +23,7 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "0200"
+VERSION = "0220"
 EXP_ID = "utmos_sslwavlm_sfds_bilstmattention"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -57,7 +57,7 @@ _, val_dataset_list = get_labeldata_list(
 
 print(f"val_len: {len(val_dataset_list)}")
 
-cfg.ml.num_epochs = 15
+cfg.ml.num_epochs = 10
 cfg.ml.batch_size = 44
 cfg.ml.test_batch_size = 44
 cfg.ml.num_workers = 4
@@ -71,6 +71,7 @@ cfg.ml.optimizer.ssl_lr = 2e-5
 cfg.ml.optimizer.head_lr = 1e-4
 cfg.ml.optimizer.warmup_epoch = 2  # 全エポックの1割くらい
 cfg.ml.optimizer.num_cycles = 0.5
+cfg.ml.optimizer.weight_decay = 1e-4
 
 cfg.path.model_save_dir = f"{LOG_SAVE_DIR}/ckpt"
 cfg.path.val_save_dir = f"{LOG_SAVE_DIR}/val"
@@ -90,14 +91,14 @@ cfg.data.test_dataset_dict = {"track3": 0, "bvccmain": 1, "somos": 2}
 
 # dataset
 cfg.data.max_duration = 5
-cfg.data.pitch_shift_max = 150
-cfg.data.time_wrap_max = 1.05
-cfg.data.time_wrap_min = 0.95
+cfg.data.pitch_shift_max = 200
+cfg.data.time_wrap_max = 1.1
+cfg.data.time_wrap_min = 0.9
 cfg.data.is_label_normalize = True
 
 # loss
 cfg.loss.l1_rate_min = 0.5
-cfg.loss.l1_rate_max = 1
+cfg.loss.l1_rate_max = 2
 cfg.loss.cl_rate = 0.5  # 順序にはこっちがきく
 cfg.loss.diff_rate = 0.5  # l1が安定
 cfg.loss.l1_loss_margin = 0.1
