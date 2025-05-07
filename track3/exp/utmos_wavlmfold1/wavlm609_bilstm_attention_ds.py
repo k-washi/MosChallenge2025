@@ -24,7 +24,7 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "03009"
+VERSION = "04009"
 EXP_ID = "utmos_sslwavlm_sfds_fold"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -62,7 +62,7 @@ _, val_dataset_list = get_labeldata_list(
 
 print(f"val_len: {len(val_dataset_list)}")
 
-cfg.ml.num_epochs = 4
+cfg.ml.num_epochs = 10
 cfg.ml.batch_size = 44
 cfg.ml.test_batch_size = 44
 cfg.ml.num_workers = 4
@@ -85,7 +85,7 @@ cfg.model.model_name = "wavlm_bilstmattention_ds"
 cfg.model.w2v2.dropout = 0.3
 cfg.model.w2v2.lstm_layers = 3
 cfg.model.w2v2.lstm_dropout = 0.1  # lstmのドロップアウトは小さくする
-cfg.model.w2v2.lstm_hidden_dim = 256
+cfg.model.w2v2.lstm_hidden_dim = 512
 cfg.model.w2v2.is_freeze_ssl = False
 cfg.model.w2v2.ds_hidden_dim = 32
 

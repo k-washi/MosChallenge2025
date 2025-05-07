@@ -30,6 +30,7 @@ dev-dependencies = [
     "descript-audiotools",
     "ipykernel>=6.29.5",
     "nemo-toolkit[tts]>=2.0.0",
+    "parrot",
     "pre-commit>=4.0.0",
     "pyright>=1.1.389",
     "pytest>=8.3.3",
@@ -42,6 +43,7 @@ torch = [{ index = "pytorch-cu126", marker = "platform_system != 'Darwin'" }]
 torchaudio = [{ index = "pytorch-cu126", marker = "platform_system != 'Darwin'" }]
 torchvision = [{ index = "pytorch-cu126", marker = "platform_system != 'Darwin'" }]
 descript-audiotools = { git = "https://github.com/descriptinc/audiotools" }
+parrot = { git = "https://github.com/PrithivirajDamodaran/Parrot_Paraphraser.git" }
 
 [[tool.uv.index]]
 name = "pytorch-cu126"

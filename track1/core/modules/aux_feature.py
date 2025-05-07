@@ -2,6 +2,7 @@ import librosa
 import numpy as np
 import pyloudnorm as pyln
 import torch
+import torchaudio
 
 from src.audio import load_wave
 from track1.core.modules.cnn14.models import Cnn14_16k
@@ -16,6 +17,8 @@ CNN14_FMAX = 8000
 CNN14_CLASS_NUM = 527
 
 CPU_DEVICE = torch.device("cpu")
+SQUEEZE_DIM = 2
+RANDOM_TH = 0.5
 
 
 class AudioTagCNN1C4(torch.nn.Module):
@@ -64,6 +67,7 @@ class ExtractAuxFeatures:
     def extract_aux_features(
         self,
         audio_fp: str,
+        is_aug: bool = False,
     ) -> torch.Tensor:
         """Extract auxiliary features from audio.
 
@@ -73,7 +77,33 @@ class ExtractAuxFeatures:
         # 1) ロード & Mono 化
         wav_pt, _ = load_wave(audio_fp, sample_rate=TARGET_SR, mono=True, is_torch=True)
         assert isinstance(wav_pt, torch.Tensor), f"Audio file {audio_fp} is not a torch tensor."
+        if is_aug:
+            # Augmentation
+            wav_pt = self.wavpt_aug(wav_pt)
         return self.extract_aux_features_from_tensor(wav_pt)
+
+    def wavpt_aug(self, x: torch.Tensor, random_length_th: float = 3) -> torch.Tensor:
+        """Apply augmentation to the audio tensor."""
+        # 時間をランダムに短くする
+        if torch.rand(1).item() < RANDOM_TH:
+            audio_length1 = x.shape[-1]
+            audio_time_length = audio_length1 / TARGET_SR
+            if audio_time_length > random_length_th:
+                random_length = torch.randint(int(random_length_th * TARGET_SR), audio_length1, (1,)).item()
+                random_start = torch.randint(0, audio_length1 - int(random_length * TARGET_SR), (1,)).item()
+                x = x[random_start : random_start + int(random_length * TARGET_SR)]
+        if x.dim() == 1:
+            x = x.unsqueeze(0)
+        pitch_shift = int(torch.randint(-150, 150 + 1, (1,)).item())
+        time_wrap = float(torch.empty(1).uniform_(0.95, 1.05).item())
+        effects = [
+            ["tempo", str(time_wrap)],
+            ["pitch", str(pitch_shift)],
+        ]
+        x, _ = torchaudio.sox_effects.apply_effects_tensor(x, TARGET_SR, effects)
+        if x.dim() == SQUEEZE_DIM:
+            x = x.squeeze(0)
+        return x
 
     def extract_aux_features_from_tensor(
         self,

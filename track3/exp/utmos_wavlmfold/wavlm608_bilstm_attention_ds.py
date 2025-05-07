@@ -62,7 +62,7 @@ _, val_dataset_list = get_labeldata_list(
 
 print(f"val_len: {len(val_dataset_list)}")
 
-cfg.ml.num_epochs = 10
+cfg.ml.num_epochs = 4
 cfg.ml.batch_size = 44
 cfg.ml.test_batch_size = 44
 cfg.ml.num_workers = 4

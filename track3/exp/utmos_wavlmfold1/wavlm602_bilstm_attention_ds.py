@@ -1,7 +1,7 @@
 """Wav2vec2 linear training script.
 
 track3を訓練に追加し,fold likeにする
-val:8,test:9
+val:1,test:2
 """
 
 import shutil
@@ -24,7 +24,7 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "03009"
+VERSION = "04002"
 EXP_ID = "utmos_sslwavlm_sfds_fold"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -39,13 +39,13 @@ TRAIN_LIST = [
     "/data/mosranking/bvccmain/train.csv",
     "/data/mosranking/somos/train.csv",
     "/data/mosranking/track3/fold_0.csv",
-    "/data/mosranking/track3/fold_1.csv",
-    "/data/mosranking/track3/fold_2.csv",
     "/data/mosranking/track3/fold_3.csv",
     "/data/mosranking/track3/fold_4.csv",
     "/data/mosranking/track3/fold_5.csv",
     "/data/mosranking/track3/fold_6.csv",
     "/data/mosranking/track3/fold_7.csv",
+    "/data/mosranking/track3/fold_8.csv",
+    "/data/mosranking/track3/fold_9.csv",
 ]
 _, train_dataset_list = get_labeldata_list(dataset_csv_list=TRAIN_LIST, is_balanced=True)
 print(f"train_len: {len(train_dataset_list)}")
@@ -53,7 +53,7 @@ print(f"train_len: {len(train_dataset_list)}")
 VAL_LIST = [
     "/data/mosranking/bvccmain/val.csv",
     "/data/mosranking/somos/val.csv",
-    "/data/mosranking/track3/fold_8.csv",
+    "/data/mosranking/track3/fold_1.csv",
 ]
 
 _, val_dataset_list = get_labeldata_list(
@@ -62,7 +62,7 @@ _, val_dataset_list = get_labeldata_list(
 
 print(f"val_len: {len(val_dataset_list)}")
 
-cfg.ml.num_epochs = 4
+cfg.ml.num_epochs = 10
 cfg.ml.batch_size = 44
 cfg.ml.test_batch_size = 44
 cfg.ml.num_workers = 4
@@ -85,7 +85,7 @@ cfg.model.model_name = "wavlm_bilstmattention_ds"
 cfg.model.w2v2.dropout = 0.3
 cfg.model.w2v2.lstm_layers = 3
 cfg.model.w2v2.lstm_dropout = 0.1  # lstmのドロップアウトは小さくする
-cfg.model.w2v2.lstm_hidden_dim = 256
+cfg.model.w2v2.lstm_hidden_dim = 512
 cfg.model.w2v2.is_freeze_ssl = False
 cfg.model.w2v2.ds_hidden_dim = 32
 

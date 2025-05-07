@@ -22,3 +22,9 @@ class DatasetConfig:
     # contrastiveのデータに対してmosスコアが付いているデータが少ないので拡張する
     is_extend: bool = False
     extend_rate: float = 0.1  # mosがついているデータをextendする割合
+
+    # featdir
+    featdir: str = "data/MusicEval-phase1/feat"
+    audio_feat: str = "audio"
+    prompt_feat: str = "prompt"
+    aux_feat: str = "aux"
