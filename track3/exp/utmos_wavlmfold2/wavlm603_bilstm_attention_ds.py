@@ -1,7 +1,7 @@
 """Wav2vec2 linear training script.
 
 track3を訓練に追加し,fold likeにする
-val:6,test:7
+val:2,test:3
 """
 
 import shutil
@@ -19,13 +19,12 @@ from track3.core.models.utmospl_sfds import MOSPredictorModule
 from track3.exp.utils import CheckpointEverySteps
 
 cfg = Config()
-cfg.ml.seed = 42
 seed_everything(cfg.ml.seed)
 ##########
 # Params #
 ##########
 
-VERSION = "04007_1"
+VERSION = "05003"
 EXP_ID = "utmos_sslwavlm_sfds_fold"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -41,10 +40,10 @@ TRAIN_LIST = [
     "/data/mosranking/somos/train.csv",
     "/data/mosranking/track3/fold_0.csv",
     "/data/mosranking/track3/fold_1.csv",
-    "/data/mosranking/track3/fold_2.csv",
-    "/data/mosranking/track3/fold_3.csv",
     "/data/mosranking/track3/fold_4.csv",
     "/data/mosranking/track3/fold_5.csv",
+    "/data/mosranking/track3/fold_6.csv",
+    "/data/mosranking/track3/fold_7.csv",
     "/data/mosranking/track3/fold_8.csv",
     "/data/mosranking/track3/fold_9.csv",
 ]
@@ -54,7 +53,7 @@ print(f"train_len: {len(train_dataset_list)}")
 VAL_LIST = [
     "/data/mosranking/bvccmain/val.csv",
     "/data/mosranking/somos/val.csv",
-    "/data/mosranking/track3/fold_6.csv",
+    "/data/mosranking/track3/fold_2.csv",
 ]
 
 _, val_dataset_list = get_labeldata_list(
@@ -62,9 +61,6 @@ _, val_dataset_list = get_labeldata_list(
 )
 
 print(f"val_len: {len(val_dataset_list)}")
-
-pretrained_model_path = "logs/utmos_sslwavlm_sfds_fold/v04007/ckpt/ckpt-9600/model.ckpt"
-
 
 cfg.ml.num_epochs = 10
 cfg.ml.batch_size = 44
@@ -85,11 +81,10 @@ cfg.path.model_save_dir = f"{LOG_SAVE_DIR}/ckpt"
 cfg.path.val_save_dir = f"{LOG_SAVE_DIR}/val"
 
 # model
-cfg.model.model_name = "wavlm_bilstmattention_ds"
+cfg.model.model_name = "wavlm_conformer_ds"
 cfg.model.w2v2.dropout = 0.3
-cfg.model.w2v2.lstm_layers = 3
-cfg.model.w2v2.lstm_dropout = 0.1  # lstmのドロップアウトは小さくする
-cfg.model.w2v2.lstm_hidden_dim = 512
+cfg.model.w2v2.n_heads = 8
+cfg.model.w2v2.n_layers = 3
 cfg.model.w2v2.is_freeze_ssl = False
 cfg.model.w2v2.ds_hidden_dim = 32
 
@@ -105,8 +100,8 @@ cfg.data.time_wrap_min = 0.95
 cfg.data.is_label_normalize = True
 
 # loss
-cfg.loss.l1_rate_min = 1
-cfg.loss.l1_rate_max = 2
+cfg.loss.l1_rate_min = 0.5
+cfg.loss.l1_rate_max = 1
 cfg.loss.cl_rate = 0.5  # 順序にはこっちがきく
 cfg.loss.diff_rate = 0.5  # l1が安定
 cfg.loss.l1_loss_margin = 0.1
@@ -123,7 +118,6 @@ def train() -> None:
     )
     cfg.data.train_dataset_num = len(dataset.train_dataset.dataset_list)
     model = MOSPredictorModule(cfg)
-    model.load_state_dict(torch.load(pretrained_model_path, map_location="cpu"), strict=True)
     logger = None
     if IS_LOGGING:
         logger = WandbLogger(

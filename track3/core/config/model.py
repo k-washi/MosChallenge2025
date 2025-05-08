@@ -6,6 +6,7 @@ MODEL_LIST = [
     "wavlm_bilstmattention_ds",
     "hubert_bilstmattention",
     "contentvec_bilstmattention",
+    "wavlm_conformer_ds",
 ]
 
 
@@ -23,6 +24,10 @@ class Wav2Vec2Config:
     # ds
     ds_num = 3
     ds_hidden_dim = 32
+
+    # conformer
+    n_layers: int = 3
+    n_heads: int = 8
 
 
 class ModelConfig:

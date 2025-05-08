@@ -100,6 +100,19 @@ def get_model(config: ModelConfig, model_name: str) -> torch.nn.Module:
         )
         if config.w2v2.is_freeze_ssl:
             model.freaze_ssl()
+    elif model_name == "wavlm_conformer_ds":
+        from track3.core.models.ssl.wavlm_conformer_ds import MOSPredictorWavLM
+
+        model = MOSPredictorWavLM(
+            dropout=config.w2v2.dropout,
+            n_layers=config.w2v2.n_layers,
+            n_heads=config.w2v2.n_heads,
+            ds_hidden_dim=config.w2v2.ds_hidden_dim,
+            ds_num=config.w2v2.ds_num,
+            pretrained_model_name=config.wavlm_pretrained_model_name,
+        )
+        if config.w2v2.is_freeze_ssl:
+            model.freaze_ssl()
     else:
         emsg = f"Model {model_name} not found."
         raise ValueError(emsg)

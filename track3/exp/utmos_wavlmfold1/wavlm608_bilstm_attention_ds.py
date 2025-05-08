@@ -24,7 +24,7 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "04008"
+VERSION = "04008_1"
 EXP_ID = "utmos_sslwavlm_sfds_fold"
 WANDB_PROJECT_NAME = "moschallenge2025track3_v2"
 IS_LOGGING = True
@@ -33,6 +33,8 @@ FAST_DEV_RUN = False
 LOG_SAVE_DIR = f"logs/{EXP_ID}/v{VERSION}"
 Path(LOG_SAVE_DIR).mkdir(parents=True, exist_ok=True)
 shutil.copy(__file__, LOG_SAVE_DIR)
+
+pretrained_model_path = "logs/utmos_sslwavlm_sfds_fold/v04008/ckpt/ckpt-9450/model.ckpt"
 
 # データの読み込み
 TRAIN_LIST = [
@@ -101,8 +103,8 @@ cfg.data.time_wrap_min = 0.95
 cfg.data.is_label_normalize = True
 
 # loss
-cfg.loss.l1_rate_min = 0.5
-cfg.loss.l1_rate_max = 1
+cfg.loss.l1_rate_min = 1
+cfg.loss.l1_rate_max = 2
 cfg.loss.cl_rate = 0.5  # 順序にはこっちがきく
 cfg.loss.diff_rate = 0.5  # l1が安定
 cfg.loss.l1_loss_margin = 0.1
@@ -119,6 +121,7 @@ def train() -> None:
     )
     cfg.data.train_dataset_num = len(dataset.train_dataset.dataset_list)
     model = MOSPredictorModule(cfg)
+    model.load_state_dict(torch.load(pretrained_model_path), strict=True)
     logger = None
     if IS_LOGGING:
         logger = WandbLogger(
