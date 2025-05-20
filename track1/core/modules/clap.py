@@ -83,8 +83,8 @@ class ClapEmbedding:
             audio_time_length = audio_length1 / CLAP_SR
             if audio_time_length > random_length_th:
                 random_length = torch.randint(int(random_length_th * CLAP_SR), audio_length1, (1,)).item()
-                random_start = torch.randint(0, audio_length1 - int(random_length * CLAP_SR), (1,)).item()
-                x = x[random_start : random_start + int(random_length * CLAP_SR)]
+                random_start = torch.randint(0, audio_length1 - int(random_length), (1,)).item()
+                x = x[random_start : random_start + int(random_length)]
         if x.dim() == 1:
             x = x.unsqueeze(0)
         pitch_shift = int(torch.randint(-150, 150 + 1, (1,)).item())
@@ -148,7 +148,7 @@ class ClapEmbedding:
             str: Paraphrased text.
 
         """
-        return self.parrot.augment(text)  # pyright: ignore[reportReturnType]
+        return self.parrot.augment(text, max_return_phrases=10, use_gpu=True, max_length=128)  # pyright: ignore[reportReturnType]
 
 
 if __name__ == "__main__":

@@ -90,8 +90,8 @@ class ExtractAuxFeatures:
             audio_time_length = audio_length1 / TARGET_SR
             if audio_time_length > random_length_th:
                 random_length = torch.randint(int(random_length_th * TARGET_SR), audio_length1, (1,)).item()
-                random_start = torch.randint(0, audio_length1 - int(random_length * TARGET_SR), (1,)).item()
-                x = x[random_start : random_start + int(random_length * TARGET_SR)]
+                random_start = torch.randint(0, audio_length1 - int(random_length), (1,)).item()
+                x = x[random_start : random_start + int(random_length)]
         if x.dim() == 1:
             x = x.unsqueeze(0)
         pitch_shift = int(torch.randint(-150, 150 + 1, (1,)).item())
