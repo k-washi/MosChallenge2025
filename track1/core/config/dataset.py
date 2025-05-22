@@ -28,3 +28,6 @@ class DatasetConfig:
     audio_feat: str = "audio"
     prompt_feat: str = "prompt"
     aux_feat: str = "aux"
+    audio_feat_aug: str = "audio_aug"
+    prompt_feat_aug: str = "prompt_aug"
+    aux_feat_aug: str = "aux_aug"

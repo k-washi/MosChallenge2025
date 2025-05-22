@@ -13,8 +13,8 @@ from lightning.pytorch.loggers import WandbLogger
 
 from track1.core.config import Config
 from track1.core.dataset.getdataset import get_dataset
-from track1.core.dataset.mospl import MOSDataModule
-from track1.core.model.mospl import MOSPredictorModule
+from track1.core.dataset.mospl_aux import MOSDataModule
+from track1.core.model.mospl_aux import MOSPredictorModule
 from track3.exp.utils import CheckpointEverySteps
 
 cfg = Config()
@@ -23,8 +23,8 @@ seed_everything(cfg.ml.seed)
 # Params #
 ##########
 
-VERSION = "01001"
-EXP_ID = "mosnet_simple"
+VERSION = "02000"
+EXP_ID = "mosnet_aux"
 WANDB_PROJECT_NAME = "moschallenge2025track1_v1"
 IS_LOGGING = True
 FAST_DEV_RUN = False
@@ -50,32 +50,32 @@ val_audio_list, val_prompt_list, val_score_list = get_dataset(
 print(f"val_len: {len(val_audio_list)}")
 
 cfg.ml.num_epochs = 30
-cfg.ml.batch_size = 16
-cfg.ml.test_batch_size = 16
+cfg.ml.batch_size = 10
+cfg.ml.test_batch_size = 10
 cfg.ml.num_workers = 4
 cfg.ml.accumulate_grad_num = 1
 cfg.ml.grad_clip_val = 1.0
-cfg.ml.check_val_every_n_steps = 120
+cfg.ml.check_val_every_n_steps = 192
 cfg.ml.mix_precision = "32"
 
-cfg.ml.optimizer.lr = 8e-5
+cfg.ml.optimizer.lr = 5e-5
 cfg.ml.optimizer.weight_decay = 0.001
 
 cfg.path.model_save_dir = f"{LOG_SAVE_DIR}/ckpt"
 cfg.path.val_save_dir = f"{LOG_SAVE_DIR}/val"
 
 # model
-cfg.model.model_name = "mosnet"
+cfg.model.model_name = "mosnet_aux"
 cfg.model.mosnet.input_dim = 512
 cfg.model.mosnet.aux_dim = 557
-cfg.model.mosnet.hidden_dim = 2048
-cfg.model.mosnet.tf_n_head = 32
-cfg.model.mosnet.tf_n_layers = 5
-cfg.model.mosnet.tf_dropout = 0.2
-cfg.model.mosnet.head_dropout = 0.2
+cfg.model.mosnet.hidden_dim = 1024
+cfg.model.mosnet.tf_n_head = 16
+cfg.model.mosnet.tf_n_layers = 3
+cfg.model.mosnet.tf_dropout = 0.15
+cfg.model.mosnet.head_dropout = 0.3
 
 # dataset
-cfg.data.aug_rate = 0.5
+cfg.data.aug_rate = 0.3
 
 # loss
 cfg.loss.l1_rate_min = 0.5
@@ -91,8 +91,10 @@ def train() -> None:
     dataset = MOSDataModule(
         config=cfg,
         train_audio_list=train_audio_list,
+        train_prompt_list=train_prompt_list,
         train_score_list=train_score_list,
         val_audio_list=val_audio_list,
+        val_prompt_list=val_prompt_list,
         val_score_list=val_score_list,
     )
     cfg.data.train_dataset_num = len(dataset.train_dataset.audio_list)

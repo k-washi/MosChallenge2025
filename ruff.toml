@@ -72,6 +72,7 @@ ignore = [
     "S101",    # use of assert detected
     "S112",    # `try`-`except`-`continue` detected, consider logging the exception
     "S301",    # S301 - pickle module is used
+    "S311",    # S311 - subprocess call: check for execution of untrusted input
     "S603",    # S603 - subprocess call: check for execution of untrusted input
     "T201",    # print found
     "TD003",   # TD003 Missing issue link on the line following this TODO

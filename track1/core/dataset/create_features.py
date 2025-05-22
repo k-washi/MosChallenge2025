@@ -126,7 +126,11 @@ def create_features(
             torch.save(text_embedding, output_pt_fp)
 
         prompt_list = clap.parrot_aug(prompt)
+        if prompt_list is None:
+            continue
         for parrot_prompt, _ in prompt_list:
+            if parrot_prompt is None:
+                continue
             if parrot_prompt == prompt:
                 continue
             save_index += 1
@@ -135,7 +139,11 @@ def create_features(
             torch.save(text_embedding, output_pt_fp)
         if prompt != back_prompt:
             prompt_list = clap.parrot_aug(back_prompt)
+            if prompt_list is None:
+                continue
             for parrot_prompt, _ in prompt_list:
+                if parrot_prompt is None:
+                    continue
                 if parrot_prompt == back_prompt:
                     continue
                 save_index += 1

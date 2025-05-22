@@ -5,7 +5,7 @@ from lightning.pytorch import LightningDataModule
 from torch.utils.data import DataLoader
 
 from track1.core.config import Config
-from track1.core.dataset.featdataset import MOSDataset
+from track1.core.dataset.featdataset_aux import MOSDataset
 
 EMPTY_LIST = []
 CPU_DEVICE = torch.device("cpu")
@@ -28,20 +28,26 @@ class MOSDataModule(LightningDataModule):
         self,
         config: Config,
         train_audio_list: list[str | Path],
+        train_prompt_list: list[str],
         train_score_list: list[tuple[float, float]],
         val_audio_list: list[str | Path],
+        val_prompt_list: list[str],
         val_score_list: list[tuple[float, float]],
         test_audio_list: list[str | Path] = EMPTY_LIST,
+        test_prompt_list: list[str] = EMPTY_LIST,
         test_score_list: list[tuple[float, float]] = EMPTY_LIST,
     ) -> None:
         """Initialize the MOSDataModule."""
         super().__init__()
         self.c = config
         self.train_audio_list = train_audio_list
+        self.train_prompt_list = train_prompt_list
         self.train_score_list = train_score_list
         self.val_audio_list = val_audio_list
+        self.val_prompt_list = val_prompt_list
         self.val_score_list = val_score_list
         self.test_audio_list = test_audio_list
+        self.test_prompt_list = test_prompt_list
         self.test_score_list = test_score_list
 
         self.setup()
@@ -58,12 +64,14 @@ class MOSDataModule(LightningDataModule):
             self.train_dataset = MOSDataset(
                 config=self.c,
                 audio_list=self.train_audio_list,
+                prompt_list=self.train_prompt_list,
                 score_list=self.train_score_list,
                 is_aug=True,
             )
             self.val_dataset = MOSDataset(
                 config=self.c,
                 audio_list=self.val_audio_list,
+                prompt_list=self.val_prompt_list,
                 score_list=self.val_score_list,
                 is_aug=False,
             )
@@ -71,6 +79,7 @@ class MOSDataModule(LightningDataModule):
             self.test_dataset = MOSDataset(
                 config=self.c,
                 audio_list=self.test_audio_list,
+                prompt_list=self.test_prompt_list,
                 score_list=self.test_score_list,
                 is_aug=False,
             )
@@ -90,6 +99,7 @@ class MOSDataModule(LightningDataModule):
             num_workers=self.c.ml.num_workers,
             pin_memory=True,
             drop_last=True,
+            collate_fn=MOSDataset.collate_fn,
         )
 
     def val_dataloader(self) -> DataLoader:
@@ -106,6 +116,7 @@ class MOSDataModule(LightningDataModule):
             shuffle=False,
             num_workers=self.c.ml.num_workers,
             pin_memory=True,
+            collate_fn=MOSDataset.collate_fn,
         )
 
     def test_dataloader(self) -> DataLoader:
@@ -122,4 +133,5 @@ class MOSDataModule(LightningDataModule):
             shuffle=False,
             num_workers=self.c.ml.num_workers,
             pin_memory=True,
+            collate_fn=MOSDataset.collate_fn,
         )
