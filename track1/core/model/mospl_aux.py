@@ -101,11 +101,11 @@ class MOSPredictorModule(LightningModule):
         )
         l1loss_2 = torch.sum(mask * l1loss_2) / (mask.sum() + 1e-6)
 
-        rank_loss_mi = ranknet_loss(pred_mi, score_mi, self.c.loss.ranking_loss_margin)
-        rank_loss_ta = ranknet_loss(pred_ta, score_ta, self.c.loss.ranking_loss_margin)
+        rank_loss_mi = ranknet_loss(pred_mi, score_mi, self.c.loss.contrastive_loss_margin)
+        rank_loss_ta = ranknet_loss(pred_ta, score_ta, self.c.loss.contrastive_loss_margin)
 
-        diff_loss_mi = mosdiff_loss(pred_mi, score_mi, self.c.loss.diff_rate)
-        diff_loss_ta = mosdiff_loss(pred_ta, score_ta, self.c.loss.diff_rate)
+        diff_loss_mi = mosdiff_loss(pred_mi, score_mi, self.c.loss.contrastive_loss_margin)
+        diff_loss_ta = mosdiff_loss(pred_ta, score_ta, self.c.loss.contrastive_loss_margin)
         return l1loss_1, l1loss_2, rank_loss_mi, rank_loss_ta, diff_loss_mi, diff_loss_ta
 
     def on_fit_start(self) -> None:
